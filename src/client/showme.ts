@@ -112,7 +112,6 @@ export class CShowme {
             }
         }
 
-
         // if no acceleration, apply deacceleration to any current velocities
         if (accelX == 0 && this.velPanX != 0) {
             //console.log('do deacceleration')

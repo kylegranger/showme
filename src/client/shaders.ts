@@ -27,7 +27,7 @@ function createProgram(shader: IShader) : WebGLProgram {
     gl.linkProgram(program)
   
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        //alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(program));
+        alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(program));
         return null;
     }
     return program
@@ -39,7 +39,6 @@ export function initShadersGl() {
       glShaders[i] = createProgram(glslSrc[i])
     }
 }
-
 
 const glslPhong : IShader = {
   vertex: `
@@ -100,7 +99,6 @@ void main() {
 `
 }
 
-
 const glslTabla : IShader = {
   vertex: `
 precision highp float; 
@@ -134,7 +132,6 @@ void main() {
 `
 }
 
-
 const glslBasic : IShader = {
   vertex: `
 precision highp float;
@@ -160,8 +157,6 @@ void main() {
 `
 }
 
-
-
   const glslTop : IShader = {
     vertex: `
   attribute vec2 a_Position;
@@ -182,9 +177,9 @@ void main() {
   `
   }
 
-  let glslSrc : IShader [] = [
-  glslBasic,
-  glslPhong,
-  glslTabla,
-  glslTop,
+let glslSrc : IShader [] = [
+    glslBasic,
+    glslPhong,
+    glslTabla,
+    glslTop,
 ]

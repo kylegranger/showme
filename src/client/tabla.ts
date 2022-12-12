@@ -14,8 +14,6 @@ export class CTabla {
     cubeMapNames: string []
     private positions: Float32Array
     private indices: Uint16Array
-    //defaultWidth: number
-    //defaultHeight: number
     uniformWhtx: vec4
     uniformCameraPos: vec4
     
@@ -30,9 +28,6 @@ export class CTabla {
     height: number
 
     public constructor() {
-        //this.defaultWidth = 1200
-        //this.defaultHeight = 1200
-        // uniform: width, height, tile size, unused
         this.uniformWhtx = vec4.fromValues(1, 1, 10000, -1)
         this.uniformCameraPos = vec4.create()
         this.texturesDir = 'data/tabla/'
