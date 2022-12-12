@@ -29,17 +29,6 @@
 			position:absolute;
 		}
 
-		.puzzle_btn {
-			background-color: rgba(100, 100, 100, 0.80);
-			color: white;
-			font-family: monospace;
-			padding: 0.5em;
-			border-radius: 0.8em;
-			height: 60px;
-			width: 60px;
-			margin: 2px;
-		}
-
 		span.mysvg {
 			position: center;
 			left: 10px;
@@ -54,11 +43,6 @@
 	</style>
 </head>
 <body>
-	<script>
-		var params = window.location.href.split('?')[1];
-		var id = params.substr(3)
-		window.puzzleId = id
-	</script>
 	<script type="module" src="main.js"></script>
 	<div id="myElement">
 		<!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /> -->
@@ -66,9 +50,6 @@
 		<div id="asdf" style="justify-content: center; display: flex; position: absolute; flex-direction: column; left: 2px; height: 100%;">
 		</div>
 	</div>
-	<!-- <div>
-		<canvas id="auxcan" margin=0px width="512" height="512"></canvas>
-	</div> -->
 </body>
 
 </html>
