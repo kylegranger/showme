@@ -11,11 +11,6 @@ export interface IGlobalInfo {
 
     tabla: CTabla
 
-    panMillis: number
-    panCoeff: number
-    panCoeffX: number
-    panCoeffY: number
-
     pcamera: PCamera
 
     cameraX: number
@@ -30,7 +25,6 @@ export interface IGlobalInfo {
     matProjection: mat4
     matNormal: mat4
     lightDirection: vec3
-    updateMc: boolean
 }
 
 export let a : IGlobalInfo= {
@@ -38,11 +32,6 @@ export let a : IGlobalInfo= {
 
     canvas: null,
     tabla: null,
-
-    panMillis: 500,
-    panCoeff: 0.25,
-    panCoeffX: 0,
-    panCoeffY: 0,
 
     pcamera: null,
 
@@ -57,6 +46,5 @@ export let a : IGlobalInfo= {
     matViewProjection: null,
     matNormal: null,
     lightDirection: null,
-    updateMc: false,
 } 
 

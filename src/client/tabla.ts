@@ -124,6 +124,7 @@ export class CTabla {
             n++
         }
    }
+
     public setTablaIndex(tablaName: string)  {
         let n: number = 0
         for (let name of this.texturesNames) {
@@ -133,8 +134,8 @@ export class CTabla {
             }
             n++
         }
-
     }
+
     public async renderGl() {
         this.updateMatrix()
         let gl = a.gl
@@ -158,14 +159,6 @@ export class CTabla {
         gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 12, 0);
         gl.enableVertexAttribArray(a_Position);
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);            
-
-    }
-
-    public cycleTexture() {
-        this.tablaIndex++
-        if (this.tablaIndex >= this.texturesNames.length) {
-            this.tablaIndex = 0
-        }
     }
 
     public updateMatrix() {
