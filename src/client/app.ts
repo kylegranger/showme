@@ -10,7 +10,7 @@ import { CMousekeyCtlr } from './mousekeyctlr'
 
 
 export class CApp {
-	public p: CShowme;
+	public showme: CShowme;
 	public camera: PCamera
 	public  gl: any
 	private initialized: boolean
@@ -63,8 +63,8 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
 
 	public renderGl() {
 		a.gl.clear(a.gl.COLOR_BUFFER_BIT | a.gl.DEPTH_BUFFER_BIT);
-		if (this.p) {
-			this.p.renderGl()
+		if (this.showme) {
+			this.showme.renderGl()
 		}
 	}
 
@@ -80,7 +80,7 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
 	async initShowme() {
 		let temp = new CShowme()
 		await temp.initialize()
-		this.p = temp
+		this.showme = temp
 	}
 
 	readTextFile(file, callback) {

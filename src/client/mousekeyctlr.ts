@@ -1,8 +1,6 @@
 
-//import { ICtlr } from './ctlr'
 import { EKeyId } from './core'
 import { CApp } from './app'
-// import { a } from './globals'
 
 export class CMousekeyCtlr {
 	a: CApp
@@ -33,7 +31,7 @@ export class CMousekeyCtlr {
 	}
 
 	public onMouseLeftDown(x: number, y: number) {
-		this.a.p.handleClick(x, y)
+		this.a.showme.handleClick(x, y)
 	}
 
 	public onMouseRightDown(x: number, y: number, evt: MouseEvent) {
@@ -46,27 +44,27 @@ export class CMousekeyCtlr {
 	public onMouseMove(x: number, y: number) {
 	}
 	public onMouseLeftUp(x: number, y: number) {
-		this.a.p.handleClickRelease(x, y)
+		this.a.showme.handleClickRelease(x, y)
 	}
 
 
 	public onMouseEvent(evt: MouseEvent) {
-		if (!this.a.p) {
+		if (!this.a.showme) {
 			return
 		}
 
-		if (this.a.p.mouseIsOut && (evt.offsetX || evt.offsetY)) {
+		if (this.a.showme.mouseIsOut && (evt.offsetX || evt.offsetY)) {
 			console.log('mouseover ---------------------------------buttons: ' + evt.buttons)
-			this.a.p.mouseIsOut = false
+			this.a.showme.mouseIsOut = false
 			// check left button
 			if (!(evt.buttons & 1)) {
-				this.a.p.handleClickRelease(evt.offsetX, evt.offsetY)
+				this.a.showme.handleClickRelease(evt.offsetX, evt.offsetY)
 			}
 			return
 		}
 		if (!evt.offsetX && !evt.offsetY) {
 			console.log('mouseout ---------------------------------buttons: ' + evt.buttons)
-			this.a.p.mouseIsOut = true
+			this.a.showme.mouseIsOut = true
 			return
 		}
 
@@ -93,38 +91,37 @@ export class CMousekeyCtlr {
 	}
 
 	public onKeydownEvent(evt: KeyboardEvent) {
-		if (this.a.p) {
-			console.log('got evt.code ' + evt.code) 
+		if (this.a.showme) {
 			if (evt.code == 'ArrowUp') {
-				this.a.p.onAction(true, EKeyId.ArrowUp)
+				this.a.showme.onAction(true, EKeyId.ArrowUp)
 			} else if (evt.code == 'ArrowDown') {
-				this.a.p.onAction(true, EKeyId.ArrowDown)
+				this.a.showme.onAction(true, EKeyId.ArrowDown)
 			} else if (evt.code == 'ArrowLeft') {
-				this.a.p.onAction(true, EKeyId.ArrowLeft)
+				this.a.showme.onAction(true, EKeyId.ArrowLeft)
 			} else if (evt.code == 'ArrowRight') {
-				this.a.p.onAction(true, EKeyId.ArrowRight)
+				this.a.showme.onAction(true, EKeyId.ArrowRight)
 			} else if (evt.code == 'KeyI') {
-				this.a.p.onAction(true, EKeyId.ZoomIn)
+				this.a.showme.onAction(true, EKeyId.ZoomIn)
 			} else if (evt.code == 'KeyO') {
-				this.a.p.onAction(true, EKeyId.ZoomOut)
+				this.a.showme.onAction(true, EKeyId.ZoomOut)
 			}
 		}
 	}
 
 	public onKeyupEvent(evt: KeyboardEvent) {
-		if (this.a.p) {
+		if (this.a.showme) {
 			if (evt.code == 'ArrowUp') {
-				this.a.p.onAction(false, EKeyId.ArrowUp)
+				this.a.showme.onAction(false, EKeyId.ArrowUp)
 			} else if (evt.code == 'ArrowDown') {
-				this.a.p.onAction(false, EKeyId.ArrowDown)
+				this.a.showme.onAction(false, EKeyId.ArrowDown)
 			} else if (evt.code == 'ArrowLeft') {
-				this.a.p.onAction(false, EKeyId.ArrowLeft)
+				this.a.showme.onAction(false, EKeyId.ArrowLeft)
 			} else if (evt.code == 'ArrowRight') {
-				this.a.p.onAction(false, EKeyId.ArrowRight)
+				this.a.showme.onAction(false, EKeyId.ArrowRight)
 			} else if (evt.code == 'KeyI') {
-				this.a.p.onAction(false, EKeyId.ZoomIn)
+				this.a.showme.onAction(false, EKeyId.ZoomIn)
 			} else if (evt.code == 'KeyO') {
-				this.a.p.onAction(false, EKeyId.ZoomOut)
+				this.a.showme.onAction(false, EKeyId.ZoomOut)
 			}
 		}
 	}

@@ -27,23 +27,12 @@ export function colorToId(color: number) : number {
 	}
 	let g = (color >> 8) & 255;
 	let b = color & 255;
-	//if (r != 255) {
-		//return -1
-	//}
 	let blue = Math.floor(b / 4)
 	let green = Math.floor(g / 4)
 	let id = green * 64 + blue
 	return id
 }
 
-/*export function fixShader(urtext: string) : string{
-	let text = urtext.replace('BACK',a.backFlipVector)
-	text = text.replace('FLIP',a.flipVector)
-	text = text.replace(/THICK/g, a.thickness.toString())
-	text = text.replace('DIMX',a.dimX.toString())
-	text = text.replace('DIMY',a.dimY.toString())
-	return text
-  }*/
 
 export function getNormal3( p1 : vec2, p2 : vec2, p3 : vec2 ) : vec3
 {

@@ -1,10 +1,5 @@
-import { createProgram, updateArrayBindingPattern } from 'typescript'
 import { a } from './globals'
 import { mat4, vec3 } from 'gl-matrix'
-
-
-
-
 
 export class PCamera {
 	private position: vec3

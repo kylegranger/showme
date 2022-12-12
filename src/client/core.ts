@@ -20,13 +20,6 @@ export enum EUniform {
 	ColorSat
 }
 
-export enum EShaderMode {
-	Basic = 'basic',
-	Dem = 'dem',
-	Multi = 'multi',
-	Phong = 'phong',
-}
-
 export interface ICamera {
 	position: [number, number, number]
 }

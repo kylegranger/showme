@@ -2,13 +2,10 @@
 import { EKeyId, IKeyAction } from './core'
 import { a } from './globals';
 import { PCamera } from './camera';
-import { vec2, vec3, vec4, mat4 } from 'gl-matrix'
 
 export class CShowme {
-	public selectedGroupId: number
 	public  gl: WebGL2RenderingContext
 
-	public topTexture: WebGLTexture
 	private iter: number
 	private lastTime: number
 	public actions: IKeyAction []
@@ -24,8 +21,6 @@ export class CShowme {
 
 	public constructor() {
 		this.actions = new Array()
-		this.selectedGroupId = -1
-		a.placingGroupId = -1
 		this.lastUpdateTime = Date.now()
 		this.velPanX = 0
 		this.velPanY = 0
@@ -40,7 +35,6 @@ export class CShowme {
 
 	onAction(isDown: boolean, id: EKeyId) {
 		if (isDown) {
-			console.log('add action ' + id)
 			let action: IKeyAction = {
 				id: id,
 				timestamp: Date.now(),
@@ -49,13 +43,7 @@ export class CShowme {
 			}
 			this.actions.push(action)
 		} else {
-			console.log('remove action ' + id)
 			this.actions = this.actions.filter(function(action, index, arr){ 
-				if (action.id == id) {
-					let duration = Date.now() - action.timestamp
-					//console.log('...duration ' + duration)
-
-				}
 				return action.id != id;
 			});
 		}
@@ -76,9 +64,7 @@ export class CShowme {
 		let accelZ: number = 0
 		let accelT: number = 0
 		if (this.actions.length) {
-			//console.log('updateActions')
 			for (let action of this.actions) {
-				//console.log('action.id ' + action.id)
 				switch (action.id) {
 					case EKeyId.ArrowLeft:
 						accelX = -ACC * delta / 1500;
@@ -145,7 +131,6 @@ export class CShowme {
 		}
 
 		if (accelY == 0 && this.velPanY != 0) {
-			//console.log('do deacceleration')
 			accelY = ACC * 2 * delta / 1000;
 			if (this.velPanY > 0) {
 				this.velPanY -= accelY;
@@ -210,7 +195,6 @@ export class CShowme {
 	}
 
 	public update() {
-		a.theta -= 0.01
 		let time = Date.now()
 		let delta = time - this.lastUpdateTime
 		this.lastUpdateTime = time
@@ -238,8 +222,6 @@ export class CShowme {
 	async initializeGl(gl: WebGL2RenderingContext) {
 		this.gl = gl
 	}
-
-
 
 	public renderGl() {
 		this.iter++

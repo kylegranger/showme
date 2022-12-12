@@ -7,23 +7,14 @@ import { CTabla } from './tabla'
 
 export interface IGlobalInfo {
 	g: CWebGl
-	sideTextureIndex: number
 	canvas: HTMLCanvasElement
-	theta: number
 
 	tabla: CTabla
-	npolys: number
 
-	minCellDim: number
-	cellsX: number
-	cellsY: number
-	dimX: number
-	dimY: number
 	panMillis: number
 	panCoeff: number
 	panCoeffX: number
 	panCoeffY: number
-	placingGroupId: number
 
 	pcamera: PCamera
 
@@ -40,28 +31,18 @@ export interface IGlobalInfo {
 	matNormal: mat4
 	lightDirection: vec3
 	updateMc: boolean
-	tapDuration: number
 }
 
 export let a : IGlobalInfo= {
 	g: null,
 
-	sideTextureIndex: 2,
 	canvas: null,
-	theta: Math.PI / 2,
 	tabla: null,
-	npolys: 0,
 
-	minCellDim: 0,
-	cellsX: 0,
-	cellsY: 0,
-	dimX: 0,
-	dimY: 0,
 	panMillis: 500,
 	panCoeff: 0.25,
 	panCoeffX: 0,
 	panCoeffY: 0,
-	placingGroupId: -1,
 
 	pcamera: null,
 
@@ -77,6 +58,5 @@ export let a : IGlobalInfo= {
 	matNormal: null,
 	lightDirection: null,
 	updateMc: false,
-	tapDuration: 250,
 } 
 
