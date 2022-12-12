@@ -12,7 +12,7 @@ function main() {
 	let myElement = document.getElementById('myElement')
 
 	app = new CApp(document.querySelector("#bancan"))
-	window['pzlapp'] = app;
+	window['showmeapp'] = app;
 
 }
 

@@ -55,9 +55,9 @@ export class CMousekeyCtlr {
 
 
 	public onMouseEvent(evt: MouseEvent) {
-		if (window['inPuzzleButton']) {
-			return
-		}
+		// if (window['inPuzzleButton']) {
+		// 	return
+		// }
 		if (!this.a.p) {
 			return
 		}

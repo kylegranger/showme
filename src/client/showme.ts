@@ -1,10 +1,10 @@
 
-import { EKeyId, IKeyAction, EEdgeFlag, ISwipePanInfo } from './core'
+import { EKeyId, IKeyAction } from './core'
 import { a } from './globals';
 import { PCamera } from './camera';
 import { vec2, vec3, vec4, mat4 } from 'gl-matrix'
 
-export class CPuzzle {
+export class CShowme {
 	public selectedGroupId: number
 	public  gl: WebGLRenderingContext
 
@@ -21,11 +21,6 @@ export class CPuzzle {
 	public inTap: boolean
 	public inDragStartTime: number
 	public mouseIsOut: boolean
-	public inSwipe: boolean
-	public inTouchX: number
-	public inTouchY: number
-	public inTouchTime: number
-	private swipePanInfo: ISwipePanInfo
 
 	public constructor() {
 		this.actions = new Array()
@@ -66,20 +61,11 @@ export class CPuzzle {
 		}
 	}
 
-
-	
-
 	public handleClickRelease(x: number, y: number) {
 	}
 
-
-
-	public handleClick(x: number, y: number) {
+    public handleClick(x: number, y: number) {
 	}
-
-	public async deselectGroup(doCancel: boolean) {
-	}
-
 
 	private updateActions(delta: number) {
 		// reach maximum velocity in 200 ms
@@ -141,7 +127,6 @@ export class CPuzzle {
 		}
 
 
-		if (!this.inSwipe) {
 		// if no acceleration, apply deacceleration to any current velocities
 		if (accelX == 0 && this.velPanX != 0) {
 			//console.log('do deacceleration')
@@ -173,16 +158,9 @@ export class CPuzzle {
 					this.velPanY = 0
 				} 
 			}
-		}
-		} else {
-			let gummiband: number = 8
-			a.cameraX += (this.swipePanInfo.cameraDestX - a.cameraX) / gummiband
-			a.cameraY += (this.swipePanInfo.cameraDestY - a.cameraY) / gummiband
-			a.pcamera.update()
-		}
+		} 
 
 		if (accelZ == 0 && this.velZoom != 0) {
-			//console.log('do deacceleration')
 			accelZ = ACC * 2 * delta / 1000;
 			if (this.velZoom > 0) {
 				this.velZoom -= accelZ;
@@ -237,18 +215,6 @@ export class CPuzzle {
 		let delta = time - this.lastUpdateTime
 		this.lastUpdateTime = time
 
-		if (a.countdown) {
-			a.countdown--
-			if (!a.countdown) {
-				if (a.oldGlBuffers.length) {
-					for (let buffer of a.oldGlBuffers) {
-						console.log('delete a buffer---------------------')
-						a.gl.deleteBuffer(buffer)
-					}
-					a.oldGlBuffers = []
-				}
-			}
-		}
 		this.updateActions(delta)
 		this.clampCamera()
 		a.pcamera.update()
