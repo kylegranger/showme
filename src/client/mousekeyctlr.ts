@@ -54,7 +54,6 @@ export class CMousekeyCtlr {
 		}
 
 		if (this.a.showme.mouseIsOut && (evt.offsetX || evt.offsetY)) {
-			console.log('mouseover ---------------------------------buttons: ' + evt.buttons)
 			this.a.showme.mouseIsOut = false
 			// check left button
 			if (!(evt.buttons & 1)) {
@@ -63,7 +62,6 @@ export class CMousekeyCtlr {
 			return
 		}
 		if (!evt.offsetX && !evt.offsetY) {
-			console.log('mouseout ---------------------------------buttons: ' + evt.buttons)
 			this.a.showme.mouseIsOut = true
 			return
 		}

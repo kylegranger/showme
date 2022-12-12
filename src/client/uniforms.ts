@@ -41,7 +41,7 @@ const phongUniforms: IUniforms = {
 const tablaUniforms: IUniforms = {
 	descs: [
 		{
-			name: 'info',
+			name: null,
 			location: null,
 		},
 		{

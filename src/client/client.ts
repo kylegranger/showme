@@ -7,13 +7,8 @@ let app : CApp;
 
 
 function main() {
-	//global.devicePixelRatio = 1;
-
-	let myElement = document.getElementById('myElement')
-
 	app = new CApp(document.querySelector("#bancan"))
 	window['showmeapp'] = app;
-
 }
 
 main()

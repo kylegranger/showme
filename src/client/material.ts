@@ -8,8 +8,6 @@ export interface IUniformDesc {
 
 
 export interface IUniforms {
-	//value: Float32Array
-	//size: number
 	descs: IUniformDesc []
 }
 
@@ -24,11 +22,8 @@ export class CMaterial {
 				desc.location = gl.getUniformLocation(this.program, desc.name);
 				if (!desc.location) {
 					console.log('Failed to get the storage location of ' + desc.name);
-					//return;
 				}
 			}
 		}
 	}
-
-
 }   
