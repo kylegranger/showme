@@ -55,8 +55,8 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
         a.tabla = new CTabla()
         await a.tabla.initialize()
  
-        a.g = new CWebGl()
-        await a.g.initialize()
+        a.gl2 = new CWebGl()
+        await a.gl2.initialize()
         await this.initShowme()
 
     }

@@ -66,14 +66,6 @@ export function distance( x1: number, y1: number, x2: number, y2: number )
     return Math.sqrt(dx*dx+dy*dy)
 }
 
-
-/*export function screenToWorld(screenPos: vec2) : vec2 {
-    let worldPos = vec2.create()
-    worldPos[0] = (screenPos[0] / a.canvas.width  - 0.5) * a.worldWidth + a.cameraX
-    worldPos[1] = a.cameraY - (screenPos[1] / a.canvas.height  - 0.5) * a.worldHeight
-    return worldPos
-}*/
-
 export async function loadTexture(gl: WebGL2RenderingContext, url: string) : Promise<WebGLTexture> {
 
     console.log('loadTexture url ' + url)

@@ -6,7 +6,7 @@ import { CTabla } from './tabla'
 
 
 export interface IGlobalInfo {
-    g: CWebGl
+    gl2: CWebGl
     canvas: HTMLCanvasElement
 
     tabla: CTabla
@@ -34,7 +34,7 @@ export interface IGlobalInfo {
 }
 
 export let a : IGlobalInfo= {
-    g: null,
+    gl2: null,
 
     canvas: null,
     tabla: null,

@@ -138,23 +138,23 @@ export class CTabla {
     public async renderGl() {
         this.updateMatrix()
         let gl = a.gl
-        gl.useProgram(a.g.shaderMaterials[EShader.Tabla].program)
+        gl.useProgram(a.gl2.shaderMaterials[EShader.Tabla].program)
         gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesGl)
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesGl);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.texturesGl[this.tablaIndex]);
-        gl.uniform1i(a.g.shaderMaterials[EShader.Tabla].uniforms.descs[EUniform.PieceTexture].location, 0);   
+        gl.uniform1i(a.gl2.shaderMaterials[EShader.Tabla].uniforms.descs[EUniform.PieceTexture].location, 0);
 
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.cieloTextureGl);
-        gl.uniform1i(a.g.shaderMaterials[EShader.Tabla].uniforms.descs[EUniform.NormalTexture].location, 1);   
+        gl.uniform1i(a.gl2.shaderMaterials[EShader.Tabla].uniforms.descs[EUniform.NormalTexture].location, 1);
 
-        gl.uniform4fv(a.g.shaderMaterials[EShader.Tabla].uniforms.descs[EUniform.Info].location, this.uniformWhtx);
-        gl.uniformMatrix4fv(a.g.shaderMaterials[EShader.Tabla].uniforms.descs[EUniform.Mvp].location, false, this.matMVP);
-        gl.uniform3fv(a.g.shaderMaterials[EShader.Tabla].uniforms.descs[EUniform.Flip].location, vec3.fromValues(a.cameraX, a.cameraY, a.cameraZ));
+        gl.uniform4fv(a.gl2.shaderMaterials[EShader.Tabla].uniforms.descs[EUniform.Info].location, this.uniformWhtx);
+        gl.uniformMatrix4fv(a.gl2.shaderMaterials[EShader.Tabla].uniforms.descs[EUniform.Mvp].location, false, this.matMVP);
+        gl.uniform3fv(a.gl2.shaderMaterials[EShader.Tabla].uniforms.descs[EUniform.Flip].location, vec3.fromValues(a.cameraX, a.cameraY, a.cameraZ));
 
-        var a_Position = gl.getAttribLocation(a.g.shaderMaterials[EShader.Tabla].program, 'a_Position');
+        var a_Position = gl.getAttribLocation(a.gl2.shaderMaterials[EShader.Tabla].program, 'a_Position');
         gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 12, 0);
         gl.enableVertexAttribArray(a_Position);
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);            
