@@ -10,11 +10,11 @@ import { CMousekeyCtlr } from './mousekeyctlr'
 
 
 export class CApp {
-	public showme: CShowme;
-	public camera: PCamera
-	public  gl: any
-	private initialized: boolean
-	private mousekey: CMousekeyCtlr
+    public showme: CShowme;
+    public camera: PCamera
+    public  gl: any
+    private initialized: boolean
+    private mousekey: CMousekeyCtlr
 
 
 
@@ -39,60 +39,60 @@ public constructor(canvas: HTMLCanvasElement) {
    }
 
 async initializeWebGl(gl: WebGL2RenderingContext) {
-		gl.clearColor(0.0, 0.0, 0.0, 1.0)
-		gl.clearDepth(1.0)
-		gl.clearStencil(0.0)
-		gl.enable(gl.DEPTH_TEST)
-		gl.frontFace(gl.CW)
-		gl.cullFace(gl.BACK)
-		gl.enable(gl.CULL_FACE)
+        gl.clearColor(0.0, 0.0, 0.0, 1.0)
+        gl.clearDepth(1.0)
+        gl.clearStencil(0.0)
+        gl.enable(gl.DEPTH_TEST)
+        gl.frontFace(gl.CW)
+        gl.cullFace(gl.BACK)
+        gl.enable(gl.CULL_FACE)
 
-		initShadersGl()
+        initShadersGl()
 
-		var ext = gl.getExtension('OES_element_index_uint');
-		console.log('ext = ' + ext)
+        var ext = gl.getExtension('OES_element_index_uint');
+        console.log('ext = ' + ext)
 
-		a.tabla = new CTabla()
-		await a.tabla.initialize()
+        a.tabla = new CTabla()
+        await a.tabla.initialize()
  
-		a.g = new CWebGl()
-		await a.g.initialize()
+        a.g = new CWebGl()
+        await a.g.initialize()
         await this.initShowme()
 
-	}
+    }
 
-	public renderGl() {
-		a.gl.clear(a.gl.COLOR_BUFFER_BIT | a.gl.DEPTH_BUFFER_BIT);
-		if (this.showme) {
-			this.showme.renderGl()
-		}
-	}
+    public renderGl() {
+        a.gl.clear(a.gl.COLOR_BUFFER_BIT | a.gl.DEPTH_BUFFER_BIT);
+        if (this.showme) {
+            this.showme.renderGl()
+        }
+    }
 
-	public render() {
-		if (!this.initialized) {
-			return
-		}
-		if (a.gl) {
-			this.renderGl()
-		}
-	}
+    public render() {
+        if (!this.initialized) {
+            return
+        }
+        if (a.gl) {
+            this.renderGl()
+        }
+    }
 
-	async initShowme() {
-		let temp = new CShowme()
-		await temp.initialize()
-		this.showme = temp
-	}
+    async initShowme() {
+        let temp = new CShowme()
+        await temp.initialize()
+        this.showme = temp
+    }
 
-	readTextFile(file, callback) {
-		var rawFile = new XMLHttpRequest();
-		rawFile.overrideMimeType("application/json");
-		rawFile.open("GET", file, true);
-		rawFile.onreadystatechange = function() {
-			if (rawFile.readyState == 4 && rawFile.status == 200) {
-				callback(rawFile.responseText);
-			}
-		}
-		rawFile.send(null);
-	}
+    readTextFile(file, callback) {
+        var rawFile = new XMLHttpRequest();
+        rawFile.overrideMimeType("application/json");
+        rawFile.open("GET", file, true);
+        rawFile.onreadystatechange = function() {
+            if (rawFile.readyState == 4 && rawFile.status == 200) {
+                callback(rawFile.responseText);
+            }
+        }
+        rawFile.send(null);
+    }
 }
 
