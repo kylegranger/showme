@@ -6,7 +6,7 @@ import { vec2, vec3, vec4, mat4 } from 'gl-matrix'
 
 export class CShowme {
 	public selectedGroupId: number
-	public  gl: WebGLRenderingContext
+	public  gl: WebGL2RenderingContext
 
 	public topTexture: WebGLTexture
 	private iter: number
@@ -235,7 +235,7 @@ export class CShowme {
 
 	}
 
-	async initializeGl(gl: WebGLRenderingContext) {
+	async initializeGl(gl: WebGL2RenderingContext) {
 		this.gl = gl
 	}
 

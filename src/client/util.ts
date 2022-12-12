@@ -85,7 +85,7 @@ export function distance( x1: number, y1: number, x2: number, y2: number )
 	return worldPos
 }*/
 
-export async function loadTexture(gl: WebGLRenderingContext, url: string) : Promise<WebGLTexture> {
+export async function loadTexture(gl: WebGL2RenderingContext, url: string) : Promise<WebGLTexture> {
 
 	console.log('loadTexture url ' + url)
 	const texture = gl.createTexture();

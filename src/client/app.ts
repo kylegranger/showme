@@ -24,7 +24,7 @@ public constructor(canvas: HTMLCanvasElement) {
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
         console.log('Use WebGL')
-        a.gl = canvas.getContext("webgl");
+        a.gl = canvas.getContext("webgl2");
         if (!a.gl) {
             console.log('Failed to get the rendering context for WebGL');
             return;
@@ -34,14 +34,11 @@ public constructor(canvas: HTMLCanvasElement) {
         a.matProjection = mat4.create()
         a.matNormal = mat4.create()
         a.matViewProjection = mat4.create()
-
         this.initialized = true
+        this.mousekey = new CMousekeyCtlr(this)
+   }
 
-		this.mousekey = new CMousekeyCtlr(this)
-		
-	}
-
-async initializeWebGl(gl: WebGLRenderingContext) {
+async initializeWebGl(gl: WebGL2RenderingContext) {
 		gl.clearColor(0.0, 0.0, 0.0, 1.0)
 		gl.clearDepth(1.0)
 		gl.clearStencil(0.0)

@@ -51,12 +51,12 @@ export class CTabla {
 		this.matMVP = mat4.create()
 	}
 
-	private async initializeGl(gl: WebGLRenderingContext) {
+	private async initializeGl(gl: WebGL2RenderingContext) {
 		await this.loadTexturesGl()
 		await this.loadCieloGl('data/cielo/Beach/')
 	}
 
-	private async initializeGeometryGl(gl: WebGLRenderingContext) {
+	private async initializeGeometryGl(gl: WebGL2RenderingContext) {
 		this.verticesGl = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesGl);
 		gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.STATIC_DRAW);

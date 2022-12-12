@@ -33,7 +33,7 @@ export interface IGlobalInfo {
 	worldWidth: number
 	worldHeight: number
 
-	gl: WebGLRenderingContext
+	gl: WebGL2RenderingContext
 	matView: mat4
 	matViewProjection: mat4
 	matProjection: mat4
@@ -42,8 +42,6 @@ export interface IGlobalInfo {
 	updateMc: boolean
 	tapDuration: number
 }
-
-let THICK = 12
 
 export let a : IGlobalInfo= {
 	g: null,

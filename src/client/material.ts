@@ -16,7 +16,7 @@ export interface IUniforms {
 export class CMaterial {
 	public program: WebGLProgram
 	public uniforms: IUniforms
-	public constructor(gl: WebGLRenderingContext, program: WebGLProgram, uniforms: IUniforms) {
+	public constructor(gl: WebGL2RenderingContext, program: WebGLProgram, uniforms: IUniforms) {
 		this.uniforms = uniforms
 		this.program = program
 		for (let desc of this.uniforms.descs) {
