@@ -2,8 +2,7 @@
 
 
 ### New repository
-* [ ] import game project: build, run, simple version
-* [ ] app with basic scene functionality
+* [ ] refactor app, with basic WebGL 2.0 scene functionality
 * [ ] export as JS module
 
 ### Integrate with zcash-gui
@@ -20,3 +19,4 @@
 ### Attic
 * [x] task list markdown file with checkboxes (9 Dec)
 * [x] update roadmap readme file with all current ideas regarding what to render (9 Dec)
+* [x] import game project: build, run, simple version (9 Dec)

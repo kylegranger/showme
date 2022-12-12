@@ -2,11 +2,10 @@
 //import { ICtlr } from './ctlr'
 import { EKeyId } from './core'
 import { CApp } from './app'
-import { a } from './globals'
+// import { a } from './globals'
 
 export class CMousekeyCtlr {
 	a: CApp
-	// private rightMouseDown: boolean
 
 	constructor(a: CApp) {
 		let self = this
@@ -31,9 +30,6 @@ export class CMousekeyCtlr {
 			let y = evt.offsetY;
 			self.onMouseEvent(evt)
 		})
-		/*window.addEventListener('wheel', (evt) => {
-			self.onWheelEvent(evt)
-		})*/
 	}
 
 	public onMouseLeftDown(x: number, y: number) {
@@ -97,14 +93,6 @@ export class CMousekeyCtlr {
 	}
 
 	public onKeydownEvent(evt: KeyboardEvent) {
-		let keynum = -1
-		let keystring: string = null
-		if (evt.keyCode >= 48 && evt.keyCode <= 57) {
-			keynum = evt.keyCode - 48
-		} else if (evt.keyCode >= 64 && evt.keyCode <= 90) {
-			keystring = evt.key
-		}
-
 		if (this.a.p) {
 			console.log('got evt.code ' + evt.code) 
 			if (evt.code == 'ArrowUp') {
@@ -124,14 +112,6 @@ export class CMousekeyCtlr {
 	}
 
 	public onKeyupEvent(evt: KeyboardEvent) {
-		let keynum = -1
-		let keystring: string = null
-		if (evt.keyCode >= 48 && evt.keyCode <= 57) {
-			keynum = evt.keyCode - 48
-		} else if (evt.keyCode >= 64 && evt.keyCode <= 90) {
-			keystring = evt.key
-		}
-
 		if (this.a.p) {
 			if (evt.code == 'ArrowUp') {
 				this.a.p.onAction(false, EKeyId.ArrowUp)
