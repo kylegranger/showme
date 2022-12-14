@@ -17,7 +17,7 @@ Centrality
 Give a number to a node.  What is an important vertex?  There are various measures of ‘importance`
 
 Graph types
-- Graph
+- Undirected graph
 - Directed graph
 - Weighted graph
 - Mixed graph.
@@ -25,6 +25,8 @@ Graph types
 
 
 Laplacian matrix = Degree matrix – Adjacency matrix
+
+Are these sparse matrices, for when the number of nodes is relatively large (in the 1000's)?
 
 ---
 ### Red teaming:  view the network in realtime.
