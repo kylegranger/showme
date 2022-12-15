@@ -7,10 +7,10 @@ https://en.wikipedia.org/wiki/Centrality
 
 
 Centrality
-- Degree centrality
-- Closeness centrality
-- Harmonic Centrality
-- betweenness
+- Degree centrality: how many nodes a particular node
+- Closeness centrality:  for a given node, find the average of the shortest paths to each node. For n nodes, there are `n * (n - 1) / 2` unique paths.
+- Betweenness: The number of time a given node is used as a bridge between two nodes, for their shortest path.
+- Harmonic Centrality: derived from closeness centrality
 - Eigenvector
 	Katz
 
@@ -22,11 +22,17 @@ Graph types
 - Weighted graph
 - Mixed graph.
 
-
-
 Laplacian matrix = Degree matrix – Adjacency matrix
 
-Are these sparse matrices, for when the number of nodes is relatively large (in the 1000's)?
+Are these sparse matrices, for when the number of nodes is relatively large (in the 1000's)?  I need to figure out how the nalgebra package does this with their `DMatrix`.
+
+TODO:  Compute `closeness` and `betweenness` for each node.  And because the latter depends upon the shortest paths found by the former, it would make sense to compute both them at the same time.
+
+As this is not a trivial computation (for 13K nodes, for instance), we might consider exporting the graph (all the edges), with whatver else metadata we need (e.g., for 'good node'), and then import that file that would do the heavy math, outside of the crawler.
+
+There are several algorithms for finding the `shortest path in an unweighted graph`.
+
+
 
 ---
 ### Red teaming:  view the network in realtime.
@@ -34,8 +40,10 @@ Are these sparse matrices, for when the number of nodes is relatively large (in 
 
 ### Animation
 
-- Static pictures, every 60 seconds or 60 minutes, displayed as time lapse animation film.
+- Static pictures, e.g., every 30 minutes, displayed as time lapse animation film.
 - Like a plant or a tree growing, can view patterns over time via time lapse (arboretum)
+- Static IP addresses, can see how steady or not, over time.
+
 
 ---
 
@@ -45,6 +53,7 @@ Are these sparse matrices, for when the number of nodes is relatively large (in 
 ### Physical Modeling
 
 Contraints, solve a physical model with connections, minimum distance.  Solve for minimum energy, iteratively adding noise.
+Not sure how to do this when the address is an IP address.  Perhaps in 4 dimensions, one for each part of an address?  An interesting idea to explore, but it may turn out to be nothing.
 
 
 ---
