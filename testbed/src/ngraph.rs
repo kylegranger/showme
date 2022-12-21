@@ -1,6 +1,5 @@
 use std::{collections::{BTreeMap, HashSet, HashMap}, hash::Hash, time::Duration, net::SocketAddr};
 use spectre::{edge::Edge};
-use std::time::Instant;
 use serde::Deserialize;
 use std::fs;
 
@@ -28,14 +27,6 @@ pub struct CrawlerReport {
     pub id: u32,
 }
 
-
-// #[derive(Deserialize)]
-// pub struct TVertex {
-//     pub connections: Vec<usize>,
-// }
-// pub struct AGraph {
-//     pub vertices: Vec<Vec<usize>>,
-// }
 pub struct NGraph<T> {
     pub edges: HashSet<Edge<T>>,
     index: Option<BTreeMap<T, usize>>,
@@ -253,6 +244,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::Instant;
 
     #[test]
     fn new() {
@@ -384,7 +376,7 @@ mod tests {
         let start = Instant::now();
         let (betweenness, closeness) = ngraph.compute_betweenness_and_closeness(&agraph);
         let elapsed = start.elapsed();
-        println!("elapsed-3226: {:?}", elapsed);
+        println!("elapsed for 3226 nodes: {:?}", elapsed);
         assert!(elapsed.as_secs() < 45);
         assert_eq!(agraph.len(), betweenness.len());
         assert_eq!(agraph.len(), closeness.len());
@@ -400,7 +392,7 @@ mod tests {
         let start = Instant::now();
         let (betweenness, closeness) = ngraph.compute_betweenness_and_closeness(&agraph);
         let elapsed = start.elapsed();
-        println!("elapsed-4914: {:?}", elapsed);
+        println!("elapsed for 4914 nodes: {:?}", elapsed);
         assert!(elapsed.as_secs() < 900);
         assert_eq!(agraph.len(), betweenness.len());
         assert_eq!(agraph.len(), closeness.len());
