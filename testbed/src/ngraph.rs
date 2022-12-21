@@ -107,7 +107,7 @@ where
 
     }
 
-    pub fn compute_betweenness_and_closeness (&self, agraph: AGraph) ->  (Vec<u32>, Vec<f64>) {
+    pub fn compute_betweenness_and_closeness (&self, agraph: &AGraph) ->  (Vec<u32>, Vec<f64>) {
         let num_nodes = agraph.len();
 
         let mut betweenness: Vec<u32> = vec!(0; num_nodes);
@@ -132,8 +132,9 @@ where
             while search_list.len() > 0 {
                 // 0. OUR MAIN SEARCH LOOP:  I and J
                 // 1. we search for path between i and j.  We're done when we find j
-                // 2. any short paths we find along the way, get handled, and removed from search list
+                // 2. any short paths we find along the way, they get handled and removed from search list
                 // 3. along the way, we appropriately mark any between nodes
+                // 4. we also determine if no path exists (disconnected graph case)
                 let mut done = false;
                 let j = search_list[0];
                 for x in 0..num_nodes {
@@ -148,8 +149,8 @@ where
                     let mut topush = Vec::new();
                     let mut touched: bool = false;
                     for q in queue_list.as_slice() {
-                        let v = &agraph[*q];
-                        for x in v {
+                        let vertex = &agraph[*q];
+                        for x in vertex {
                             // We collect all shortest paths for this length, as there may be multiple paths
                             if !visited[*x] {
                                 touched = true;
@@ -182,6 +183,7 @@ where
                     }
                     // If no connection exists, stop searching for it.
                     if !touched {
+                        println!("non-reachable i {} j {}", i, j);
                         search_list.retain(|&x| x != j);
                         found_or_not[j] = true; 
                         done = true
@@ -191,10 +193,6 @@ where
                 }
             }
         }
-
-        println!("total_path_length: {:?}", total_path_length);
-        println!("num_paths: {:?}", num_paths);
-
 
         for i in 0..num_nodes {
             closeness[i] = total_path_length[i] as f64 / num_paths[i] as f64;
@@ -245,7 +243,7 @@ mod tests {
         ngraph.insert(Edge::new(s2, s6));
         ngraph.insert(Edge::new(s1, s3));
         let agraph = ngraph.create_agraph(&addresses);
-        let (betweenness, closeness) = ngraph.compute_betweenness_and_closeness(agraph);
+        let (betweenness, closeness) = ngraph.compute_betweenness_and_closeness(&agraph);
 
         let total_path_length = [28, 11, 13, 14, 19, 14, 19];
         let num_paths = [10, 7, 7, 7, 7, 7, 7];
@@ -253,8 +251,6 @@ mod tests {
         for i in 0..7 {
             expected_closeness[i] = total_path_length[i] as f64 / num_paths[i] as f64;
         }
-        println!("randomish_graph: betweenness: {:?}", betweenness);
-        println!("randomish_graph: closeness: {:?}", closeness);
         assert_eq!(betweenness, [1, 6, 10, 1, 0, 1, 0]);
         assert_eq!(closeness, expected_closeness);
     }
@@ -274,7 +270,7 @@ mod tests {
         ngraph.insert(Edge::new(s0, s6));
         ngraph.insert(Edge::new(s0, s7));
         let agraph = ngraph.create_agraph(&addresses);
-        let (betweenness, closeness) = ngraph.compute_betweenness_and_closeness(agraph);
+        let (betweenness, closeness) = ngraph.compute_betweenness_and_closeness(&agraph);
 
         let total_path_length = [7, 13, 13, 13, 13, 13, 13, 13];
         let num_paths = [7, 7, 7, 7, 7, 7, 7, 7];
@@ -282,8 +278,6 @@ mod tests {
         for i in 0..8 {
             expected_closeness[i] = total_path_length[i] as f64 / num_paths[i] as f64;
         }
-        println!("star_graph_a: betweenness: {:?}", betweenness);
-        println!("star_graph_a: closeness: {:?}", closeness);
         assert_eq!(betweenness, [21, 0, 0, 0, 0, 0, 0, 0]);
         assert_eq!(closeness, expected_closeness);
     }
@@ -304,7 +298,7 @@ mod tests {
         ngraph.insert(Edge::new(s6, s7));
 
         let agraph = ngraph.create_agraph(&addresses);
-        let (betweenness, closeness) = ngraph.compute_betweenness_and_closeness(agraph);
+        let (betweenness, closeness) = ngraph.compute_betweenness_and_closeness(&agraph);
 
         let total_path_length = [13, 13, 13, 13, 13, 13, 13, 7];
         let num_paths = [7, 7, 7, 7, 7, 7, 7, 7];
@@ -312,8 +306,6 @@ mod tests {
         for i in 0..8 {
             expected_closeness[i] = total_path_length[i] as f64 / num_paths[i] as f64;
         }
-        println!("star_graph_b: betweenness: {:?}", betweenness);
-        println!("star_graph_b: closeness: {:?}", closeness);
         assert_eq!(betweenness, [0, 0, 0, 0, 0, 0, 0, 21]);
         assert_eq!(closeness, expected_closeness);
     }
@@ -339,7 +331,7 @@ mod tests {
         ngraph.insert(Edge::new(s4, s8));
 
         let agraph = ngraph.create_agraph(&addresses);
-        let (betweenness, closeness) = ngraph.compute_betweenness_and_closeness(agraph);
+        let (betweenness, closeness) = ngraph.compute_betweenness_and_closeness(&agraph);
 
         let total_path_length = [3, 3, 3, 3, 4, 7, 7, 7, 7];
         let num_paths = [3, 3, 3, 3, 4, 4, 4, 4, 4];
@@ -347,18 +339,14 @@ mod tests {
         for i in 0..9 {
             expected_closeness[i] = total_path_length[i] as f64 / num_paths[i] as f64;
         }
-        println!("disconnected_graph: betweenness: {:?}", betweenness);
-        println!("disconnected_graph: closeness: {:?}", closeness);
         assert_eq!(betweenness, [0, 0, 0, 0, 6, 0, 0, 0, 0]);
         assert_eq!(closeness, expected_closeness);
 
     }
 
     #[test]
-    fn imported_agraph() {
-        // TODO
-        println!("start parsing agraph.json");
-        let file = File::open("data/agraph.json")
+    fn imported_sample_3226() {
+        let file = File::open("data/sample-3226.json")
             .expect("file should open read only");
         let json: serde_json::Value = serde_json::from_reader(file)
             .expect("file should be proper JSON");
@@ -378,16 +366,50 @@ mod tests {
             }
             agraph.push(vertex);
         }
-        println!("done parsing agraph.json");
+        assert_eq!(agraph.len(), 3226);
         let ngraph: NGraph<usize> = NGraph::new();
-
         let start = Instant::now();
-
-        let (betweenness, closeness) = ngraph.compute_betweenness_and_closeness(agraph);
+        let (betweenness, closeness) = ngraph.compute_betweenness_and_closeness(&agraph);
         let elapsed = start.elapsed();
-        println!("test elapsed {:?}", elapsed);
-        println!("imported_agraph: betweenness: {:?}", betweenness);
-        println!("imported_agraph: closeness: {:?}", closeness);
+        println!("elapsed-3226: {:?}", elapsed);
+        assert!(elapsed.as_secs() < 45);
+        assert_eq!(agraph.len(), betweenness.len());
+        assert_eq!(agraph.len(), closeness.len());
+
     }
     
+    #[test]
+    fn imported_sample_4914() {
+        let file = File::open("data/sample-4914.json")
+            .expect("file should open read only");
+        let json: serde_json::Value = serde_json::from_reader(file)
+            .expect("file should be proper JSON");
+        let jresult = json.get("result")
+            .expect("file should have result key");
+        let jgraph = jresult.get("agraph")
+            .expect("file should have agraph key");
+
+        let vertices = jgraph.as_array().unwrap();
+        let mut agraph: AGraph = AGraph::new();
+        for v in vertices {
+            let jvertex = v.as_array().unwrap();
+            let mut vertex: Vertex = Vertex::new();
+            // parse the connections
+            for conn in jvertex {
+                vertex.push(conn.as_u64().unwrap() as usize);
+            }
+            agraph.push(vertex);
+        }
+        assert_eq!(agraph.len(), 4914);
+        let ngraph: NGraph<usize> = NGraph::new();
+        let start = Instant::now();
+        let (betweenness, closeness) = ngraph.compute_betweenness_and_closeness(&agraph);
+        let elapsed = start.elapsed();
+        println!("elapsed-4914: {:?}", elapsed);
+        assert!(elapsed.as_secs() < 900);
+        assert_eq!(agraph.len(), betweenness.len());
+        assert_eq!(agraph.len(), closeness.len());
+
+    }
+
 }
