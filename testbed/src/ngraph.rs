@@ -9,8 +9,6 @@ pub type Vertex = Vec<usize>;
 //#[derive(Deserialize)]
 pub type AGraph = Vec<Vertex>;
 
-pub const MAX_NODES: usize = 10000;
-
 pub struct NGraph<T> {
     pub edges: HashSet<Edge<T>>,
     index: Option<BTreeMap<T, usize>>,
@@ -146,7 +144,7 @@ where
 
                 while !done {
                     let mut this_round_found: Vec<usize> = Vec::new();
-                    let mut topush = Vec::new();
+                    let mut queue_me = Vec::new();
                     let mut touched: bool = false;
                     for q in queue_list.as_slice() {
                         let vertex = &agraph[*q];
@@ -154,7 +152,7 @@ where
                             // We collect all shortest paths for this length, as there may be multiple paths
                             if !visited[*x] {
                                 touched = true;
-                                topush.push(*x);
+                                queue_me.push(*x);
                                 if !found_or_not[*x] {
                                     this_round_found.push(*x);
                                     if pathlen > 1 {
@@ -166,7 +164,7 @@ where
                     }
 
                     queue_list.clear();
-                    for x in topush {
+                    for x in queue_me {
                         queue_list.push(x);
                         visited[x] = true;
                     }
