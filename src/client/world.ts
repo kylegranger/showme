@@ -32,7 +32,8 @@ export class CWorld {
     private transformBuffer: WebGLBuffer
     private transformData: Float32Array
     private vao: WebGLVertexArrayObject
-    public vpLoc: WebGLUniformLocation;
+    public viewLoc: WebGLUniformLocation;
+    public projectionLoc: WebGLUniformLocation;
 
 	public constructor(istate: IState, gl: WebGL2RenderingContext) {
 		this.istate = istate;
@@ -87,12 +88,12 @@ export class CWorld {
 	// 	}
 	// }
 
-	// public update() {
-    //     for (let node of this.nodes) {
-    //         node.updateMatrix()
-    //     }
-    //     this.setTransformData()
-	// }
+	public update() {
+        for (let node of this.nodes) {
+            node.updateMatrix()
+        }
+        this.setTransformData()
+	}
 
     private initTransformData() {
         let gl = this.gl
@@ -112,21 +113,20 @@ export class CWorld {
         gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
     }
 
-    // private setTransformData() {
-    //     let gl = this.gl
-    //     let n: number = 0;
-    //     for (let node of this.nodes) {
-    //         for (let i = 0; i < 4; i++ ) {
-    //             this.transformData[n++] = node.color[i]
-    //         }
-    //         for (let i = 0; i < 16; i++ ) {
-    //             this.transformData[n++] = node.matWorld[i]
-    //         }
-    //     }
-    //     //this.transformBuffer = gl.createBuffer();
-    //     //gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
-    //     //gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
-    // }
+    private setTransformData() {
+        let gl = this.gl
+        let n: number = 0;
+        for (let node of this.nodes) {
+            for (let i = 0; i < 4; i++ ) {
+                this.transformData[n++] = node.color[i]
+            }
+            for (let i = 0; i < 16; i++ ) {
+                this.transformData[n++] = node.matWorld[i]
+            }
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
+    }
 
 	public async initialize() {
         console.log('world::initialize, num nodes: ' + this.istate.agraphlen);
@@ -145,11 +145,14 @@ export class CWorld {
         const positionLoc = gl.getAttribLocation(glShaders[0], 'a_position');
         const colorLoc = gl.getAttribLocation(glShaders[0], 'a_color');
         const modelLoc = gl.getAttribLocation(glShaders[0], 'a_model');
-        this.vpLoc = gl.getUniformLocation(glShaders[0], 'u_vp');
+        // const centroidLoc = gl.getAttribLocation(glShaders[0], 'a_centroid');
+        const normalLoc = gl.getAttribLocation(glShaders[0], 'a_normal');
+        this.viewLoc = gl.getUniformLocation(glShaders[0], 'u_view');
+        this.projectionLoc = gl.getUniformLocation(glShaders[0], 'u_projection');
         console.log('positionLoc ', positionLoc)
         console.log('modelLoc ', modelLoc)
         console.log('colorLoc ', colorLoc)
-        console.log('vpLoc ', this.vpLoc)
+        console.log('normalLoc ', normalLoc)
 
         this.icosaGeometry = initIcosa(gl)
 
@@ -176,8 +179,15 @@ export class CWorld {
         gl.vertexAttribDivisor(5,1);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.icosaGeometry);
+        // positions
         gl.enableVertexAttribArray(4);
-        gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 12, 0);
+        gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 24, 0);
+        // normals
+        gl.enableVertexAttribArray(6);
+        gl.vertexAttribPointer(6, 3, gl.FLOAT, false, 24, 12);
+        // centroids
+        // gl.enableVertexAttribArray(6);
+        // gl.vertexAttribPointer(6, 3, gl.FLOAT, false, 36, 24);
         // gl.enableVertexAttribArray(1);
         // gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12);
 

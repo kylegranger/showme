@@ -194,6 +194,7 @@ export class CShowme {
         this.updateActions(delta)
         // this.clampCamera()
         a.pcamera.update()
+        a.world.update()
     }
 
     public async initialize() {
@@ -221,7 +222,8 @@ export class CShowme {
         this.update()
 
         if (a.world) {
-            a.gl.uniformMatrix4fv(a.world.vpLoc, false, a.matViewProjection);
+            a.gl.uniformMatrix4fv(a.world.viewLoc, false, a.matView);
+            a.gl.uniformMatrix4fv(a.world.projectionLoc, false, a.matProjection);
             a.world.renderGl()
         }
 

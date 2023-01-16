@@ -110,14 +110,19 @@ export function initShadersGl() {
 
 const glslIcosa : IShader = {
     vertex: `#version 300 es
-  uniform mat4 u_vp;
+  uniform mat4 u_view;
+  uniform mat4 u_projection;
   in vec3 a_position;
+  in vec3 a_normal;
   in vec4 a_color;
   in mat4 a_model;
   out vec4 vColor;
-    void main(){
-    vColor = a_color;
-    gl_Position = u_vp * a_model * vec4(a_position, 1.0);
+  void main(){
+    vec3 lightDirection = vec3(0.0, 0.0, -1.0);
+    // mediump vec3 normalNormal = normalize(vec3(a_model * vec4(a_normal, 1.0)));
+    mediump float light = dot(a_normal, lightDirection);
+    vColor = vec4(a_color.r * light, a_color.g * light, a_color.g * light, 1.0);
+    gl_Position = u_projection * u_view * a_model * vec4(a_position, 1.0);
   }
   `,
     fragment: `#version 300 es
