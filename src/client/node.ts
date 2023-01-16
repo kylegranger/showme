@@ -148,8 +148,7 @@ export class CNode {
         this.setPosition(
             x * WORLD_WIDTH / 65536 - WORLD_WIDTH/2,
             y * WORLD_HEIGHT / 65536 - WORLD_HEIGHT/2,
-            // jkl -z * WORLD_DEPTH / 65536,
-            0,
+            -z * WORLD_DEPTH / 65536
         )
 	}
 

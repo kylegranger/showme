@@ -71,8 +71,7 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
 
     public renderGl() {
         a.gl.clear(a.gl.COLOR_BUFFER_BIT | a.gl.DEPTH_BUFFER_BIT);
-        if (this.showme) {
-            this.showme.renderGl()
+        if (this.showme) {            this.showme.renderGl()
         }
     }
 

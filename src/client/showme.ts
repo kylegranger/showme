@@ -194,7 +194,6 @@ export class CShowme {
         this.updateActions(delta)
         // this.clampCamera()
         a.pcamera.update()
-        a.world.update()
     }
 
     public async initialize() {
@@ -204,7 +203,6 @@ export class CShowme {
         a.pcamera = new PCamera(a.cameraX, a.cameraY, a.cameraZ)
         this.zoomLogarithm = Math.log(a.cameraZ)
         a.pcamera.update();
-        // await a.tabla.initializeGeometry(1024, 1024)
         await this.initializeGl(a.gl)
     }
 
@@ -223,6 +221,7 @@ export class CShowme {
         this.update()
 
         if (a.world) {
+            a.gl.uniformMatrix4fv(a.world.vpLoc, false, a.matViewProjection);
             a.world.renderGl()
         }
 
