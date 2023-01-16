@@ -90,6 +90,7 @@ export class CWorld {
         for (let node of this.nodes) {
             node.updateMatrix()
         }
+        this.setTransformData()
 	}
 
     private initTransformData() {
@@ -112,7 +113,6 @@ export class CWorld {
 
     private setTransformData() {
         let gl = this.gl
-        // this.transformData = new Float32Array(this.istate.agraphlen * NODE_TRANSFORM_SIZE);
         let n: number = 0;
         for (let node of this.nodes) {
             for (let i = 0; i < 4; i++ ) {
@@ -122,10 +122,9 @@ export class CWorld {
                 this.transformData[n++] = node.matMVP[i]
             }
         }
-        // console.log('initTransformData: len ', this.transformData.length)
-        this.transformBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
+        //this.transformBuffer = gl.createBuffer();
+        //gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
+        //gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
     }
 
 	public async initialize() {
@@ -296,13 +295,12 @@ export class CWorld {
 		// }
 		// gl.depthMask(true)
 
-        this.setTransformData();
-		gl.disable(gl.CULL_FACE)
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
+		// gl.disable(gl.CULL_FACE)
 		gl.useProgram(glShaders[0])
         gl.bindVertexArray(this.vao);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
 
         // gl.bindBuffer(gl.ARRAY_BUFFER, this.icosaGeometry);
         // gl.enableVertexAttribArray(0);
