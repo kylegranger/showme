@@ -31,6 +31,9 @@ export class PCamera {
     }
 
     public update() : void {
+        // console.log('camera update x ', a.cameraX)
+        // console.log('camera update y ', a.cameraY)
+        // console.log('camera update z ', a.cameraZ)
         let aspect = a.canvas.width / a.canvas.height
         a.worldWidth = a.cameraZ * 1 / 0.886
         a.worldHeight = a.worldWidth / aspect
