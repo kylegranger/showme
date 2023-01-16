@@ -16,7 +16,7 @@ export class PCamera {
             0, 0, 0.5, 0,
             0, 0, 0.5, 1
         )
-        this.near = 3
+        this.near = 30
         this.far = 6000
         a.cameraX = x
         a.cameraY = y
@@ -39,7 +39,7 @@ export class PCamera {
         a.worldHeight = a.worldWidth / aspect
 
         mat4.perspective(a.matProjection, this.fovx / aspect, aspect, this.near, this.far)
-        mat4.multiply(a.matProjection, this.gpuAdjust, a.matProjection)
+        // mat4.multiply(a.matProjection, this.gpuAdjust, a.matProjection)
 
         let rx = mat4.create()
         mat4.fromXRotation(rx, 0)

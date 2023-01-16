@@ -89,8 +89,11 @@ export class CWorld {
 	// }
 
 	public update() {
+        let n = 1000
         for (let node of this.nodes) {
+            node.incRotationY(2 * Math.PI / 180 * n / 4000)
             node.updateMatrix()
+            n++
         }
         this.setTransformData()
 	}

@@ -119,9 +119,14 @@ const glslIcosa : IShader = {
   out vec4 vColor;
   void main(){
     vec3 lightDirection = vec3(0.0, 0.0, -1.0);
-    // mediump vec3 normalNormal = normalize(vec3(a_model * vec4(a_normal, 1.0)));
-    mediump float light = dot(a_normal, lightDirection);
-    vColor = vec4(a_color.r * light, a_color.g * light, a_color.g * light, 1.0);
+    // vec3 normalNormal = normalize(vec3(a_model * vec4(a_normal, 1.0)));
+    // float light = dot(a_normal, lightDirection);
+    mat4 normalMatrix = inverse(a_model);
+    normalMatrix = transpose(normalMatrix);
+    vec3 transformedNormal = (normalMatrix * vec4(a_normal, 1.0)).xyz;
+    float light = dot(transformedNormal, lightDirection);
+    light = 0.3 + light * 0.7;
+    vColor = vec4(a_color.r * light, a_color.g * light, a_color.b * light, 1.0);
     gl_Position = u_projection * u_view * a_model * vec4(a_position, 1.0);
   }
   `,

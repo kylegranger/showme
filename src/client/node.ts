@@ -40,6 +40,10 @@ export class CNode {
 		this.rotation[2] = z
 		this.updateMatrix()
 	}
+	public incRotationY(y: number) {
+		this.rotation[1] += y
+		this.updateMatrix()
+	}
 	public setRotationX(x: number) {
 		this.rotation[0] = x
 		this.updateMatrix()
@@ -160,15 +164,16 @@ export class CNode {
 	}
 
 	public updateMatrix() {
-		let rx = mat4.create()
-		let rz = mat4.create()
+		// let rx = mat4.create()
+		// let rz = mat4.create()
+        let ry = mat4.create()
 		let t = mat4.create()
 		mat4.identity(this.matWorld)
 		mat4.translate(this.matWorld, this.matWorld, vec3.fromValues(-this.center[0], -this.center[1], 0))
-		mat4.fromXRotation(rx, this.rotation[0])
-		mat4.fromZRotation(rz, this.rotation[2])
-		mat4.multiply(this.matWorld, rz, this.matWorld)
-		mat4.multiply(this.matWorld, rx, this.matWorld)
+		mat4.fromYRotation(ry, this.rotation[1])
+		// mat4.fromZRotation(rz, this.rotation[2])
+		mat4.multiply(this.matWorld, ry, this.matWorld)
+		// mat4.multiply(this.matWorld, rx, this.matWorld)
 		mat4.fromTranslation(t, this.position)
 		mat4.multiply(this.matWorld, t, this.matWorld)
 		mat4.multiply(this.matMV, a.matView, this.matWorld)
