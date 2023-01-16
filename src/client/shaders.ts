@@ -110,26 +110,21 @@ export function initShadersGl() {
 
 const glslIcosa : IShader = {
     vertex: `#version 300 es
-  layout(location=0) in vec3 a_Position;
-//   layout(location=1) in vec3 a_Normal;
-//   layout(location=2) in vec4 a_Color;
-  layout(location=1) in mat4 a_mvp;
-//   out vec3 vNormal;
-//   out vec4 vColor;
+  in vec3 a_position;
+  in vec4 a_color;
+  in mat4 a_mvp;
+  out vec4 vColor;
     void main(){
-    // vColor = a_Color;
-    // vNormal = a_Normal;
-    // gl_Position = a_mvp * vec4(a_Position, 1.0);
-    gl_Position = vec4(a_Position, 1.0);
+    vColor = a_color;
+    gl_Position = a_mvp * vec4(a_position, 1.0);
   }
   `,
     fragment: `#version 300 es
   precision highp float;
-//   in vec3 vNormal;
-//   in vec4 vColor;
+  in vec4 vColor;
   out vec4 fragColor;
   void main() {
-    fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    fragColor = vColor;
   }
   `
   }
@@ -137,8 +132,5 @@ const glslIcosa : IShader = {
 
 
 let glslSrc : IShader [] = [
-    // glslBasic,
-    // glslPhong,
-    // glslTabla,
-    glslIcosa,
+    glslIcosa
 ]

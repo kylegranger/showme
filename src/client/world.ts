@@ -97,9 +97,9 @@ export class CWorld {
         this.transformData = new Float32Array(this.istate.agraphlen * NODE_TRANSFORM_SIZE);
         let n: number = 0;
         for (let node of this.nodes) {
-            // for (let i = 0; i < 4; i++ ) {
-            //     this.transformData[n++] = node.color[i]
-            // }
+            for (let i = 0; i < 4; i++ ) {
+                this.transformData[n++] = node.color[i]
+            }
             for (let i = 0; i < 16; i++ ) {
                 this.transformData[n++] = node.matMVP[i]
             }
@@ -112,12 +112,12 @@ export class CWorld {
 
     private setTransformData() {
         let gl = this.gl
-        this.transformData = new Float32Array(this.istate.agraphlen * NODE_TRANSFORM_SIZE);
+        // this.transformData = new Float32Array(this.istate.agraphlen * NODE_TRANSFORM_SIZE);
         let n: number = 0;
         for (let node of this.nodes) {
-            // for (let i = 0; i < 4; i++ ) {
-            //     this.transformData[n++] = node.color[i]
-            // }
+            for (let i = 0; i < 4; i++ ) {
+                this.transformData[n++] = node.color[i]
+            }
             for (let i = 0; i < 16; i++ ) {
                 this.transformData[n++] = node.matMVP[i]
             }
@@ -136,41 +136,52 @@ export class CWorld {
         // x: bits 0-15
         for (let inode of this.istate.nodes) {
             let node = new CNode(inode)
+            this.nodes.push(node);
   
         }
 
         let gl = this.gl;
 
+        const positionLoc = gl.getAttribLocation(glShaders[0], 'a_position');
+        const colorLoc = gl.getAttribLocation(glShaders[0], 'a_color');
+        const mvpLoc = gl.getAttribLocation(glShaders[0], 'a_mvp');
+        console.log('positionLoc ', positionLoc)
+        console.log('mvpLoc ', mvpLoc)
+        console.log('colorLoc ', colorLoc)
+
+        this.icosaGeometry = initIcosa(gl)
 
         this.vao = gl.createVertexArray();
         gl.bindVertexArray(this.vao);
 
-        this.icosaGeometry = initIcosa(gl)
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.icosaGeometry);
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 12, 0);
-        // gl.enableVertexAttribArray(1);
-        // gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12);
 
 
         this.initTransformData();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
         gl.enableVertexAttribArray(1);
-        gl.vertexAttribPointer(1, 4, gl.FLOAT, false,  80, 0);
+        gl.vertexAttribPointer(1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 32);
         gl.enableVertexAttribArray(2);
-        gl.vertexAttribPointer(2, 4, gl.FLOAT, false, 80, 16);
+        gl.vertexAttribPointer(2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
         gl.enableVertexAttribArray(3);
-        gl.vertexAttribPointer(3, 4, gl.FLOAT, false, 80, 32);
-        gl.enableVertexAttribArray(4);
-        gl.vertexAttribPointer(4, 4, gl.FLOAT, false, 80, 48);
-        // gl.enableVertexAttribArray(6);
-        // gl.vertexAttribPointer(6, 4, gl.FLOAT, false, 80, 64);
+        gl.vertexAttribPointer(3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
+        gl.enableVertexAttribArray(5);
+        gl.vertexAttribPointer(5, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 0);
 
+        gl.vertexAttribDivisor(0,1);
         gl.vertexAttribDivisor(1,1);
         gl.vertexAttribDivisor(2,1);
         gl.vertexAttribDivisor(3,1);
-        gl.vertexAttribDivisor(4,1);
+        gl.vertexAttribDivisor(5,1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.icosaGeometry);
+        gl.enableVertexAttribArray(4);
+        gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 12, 0);
+        // gl.enableVertexAttribArray(1);
+        // gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12);
+
+
         // gl.vertexAttribDivisor(6,1);
 		// a.cameraX = this.istate.camera.position[0]
 		// a.cameraY = this.istate.camera.position[1]

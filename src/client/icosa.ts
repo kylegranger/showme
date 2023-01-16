@@ -66,14 +66,18 @@ export function initIcosa(gl: WebGL2RenderingContext) : WebGLBuffer {
     let size = 20 * 3 * 3;
     let icosaData : Float32Array = new Float32Array(size)
     let i = 0;
-    let scale = 100;
+    let scale = 5;
     for (let poly = 0; poly < 20; poly++) {
         for (let vert = 0; vert < 3; vert++) {
             let index = indices[poly*3 + vert] - 1
             // set vertex position
-            icosaData[i++] = positions[index*3 + 0] * scale;
-            icosaData[i++] = positions[index*3 + 1] * scale;
-            icosaData[i++] = positions[index*3 + 2] * scale;
+            icosaData[i+0] = positions[index*3 + 0] * scale;
+            icosaData[i+1] = positions[index*3 + 1] * scale;
+            icosaData[i+2] = positions[index*3 + 2] * scale;
+            // console.log('x: ',icosaData[i+0])
+            // console.log('y: ',icosaData[i+1])
+            // console.log('z: ',icosaData[i+2])
+            i += 3
             // // set normal, same for all face vertices
             // icosaData[i++] = normals[poly*3 + 0];
             // icosaData[i++] = normals[poly*3 + 1];
