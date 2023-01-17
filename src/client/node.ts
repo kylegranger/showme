@@ -17,6 +17,7 @@ const YDIVISOR = Math.pow(2, 16);
 export class CNode {
     public inode: INode
     public color: vec4
+    public metadata: vec4
 	public info: vec4
 	public position: vec3
 	public center: vec3
@@ -121,10 +122,9 @@ export class CNode {
 		// 	gl.drawElements(gl.TRIANGLES, piece.sideIndexLength, gl.UNSIGNED_SHORT, 0);
 		// }
 	}
-	public constructor(inode: INode) {
+	public constructor(inode: INode, designation: number) {
 		this.inode = inode;
-		// this.pickerColor = idToColor(this.igroup.gid)
-		this.info = vec4.create()
+		this.metadata = vec4.create()
         this.color = randomColor()
 		this.positionRadius = vec4.create()
 
@@ -135,20 +135,20 @@ export class CNode {
 		this.matMV = mat4.create()
 		this.matMVP = mat4.create()
 
-        // console.log('id: ' + this.inode.id);
-        // console.log('color: ' + this.color);
+        // metadata = A-B-C-D
+        //   Aggregate connections
+        //   Betweenness
+        //   Closeness
+        //   Designation (id, as integer)
+        this.metadata[0] = inode.num_connections;
+        this.metadata[1] = inode.betweenness;
+        this.metadata[2] = inode.closeness;
+        this.metadata[3] = designation;
+
         let n: number = Number('0x' + this.inode.id);
-        // console.log('n: ' + n);
-        //
         let x: number = Math.floor(n / XDIVISOR)
         let y: number = Math.floor(n / YDIVISOR) & 0xffff;
         let z: number = n & 0xffff;
-        // console.log('x: ' + x);
-        // console.log('y: ' + y);
-        // console.log('z: ' + z);
-        // console.log('betweenness: ' + this.inode.betweenness);
-        // console.log('closeness: ' + this.inode.closeness);
-        // console.log('num_connections: ' + this.inode.num_connections);
         this.setPosition(
             x * WORLD_WIDTH / 65536 - WORLD_WIDTH/2,
             y * WORLD_HEIGHT / 65536 - WORLD_HEIGHT/2,
