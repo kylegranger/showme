@@ -12,80 +12,80 @@ const NODE_TRANSFORM_SIZE: number = 24;
 
 
 export class CWorld {
-	public istate: IState
-	public nodes: CNode []
-	public  gl: WebGL2RenderingContext
-	private iter: number
+    public istate: IState
+    public nodes: CNode []
+    public  gl: WebGL2RenderingContext
+    private iter: number
     private noiseTexture: WebGLTexture
 
-	public topTexture: WebGLTexture
-	public inDrag: boolean
-	public inTap: boolean
-	public inDragStartTime: number
-	public mouseIsOut: boolean
-	public inSwipe: boolean
-	public inTouchX: number
-	public inTouchY: number
-	public inTouchTime: number
-	private lastTime: number
+    public topTexture: WebGLTexture
+    public inDrag: boolean
+    public inTap: boolean
+    public inDragStartTime: number
+    public mouseIsOut: boolean
+    public inSwipe: boolean
+    public inTouchX: number
+    public inTouchY: number
+    public inTouchTime: number
+    private lastTime: number
     private icosaGeometry: WebGLBuffer
     private transformBuffer: WebGLBuffer
     private transformData: Float32Array
     private vao: WebGLVertexArrayObject
     public viewProjectionLoc: WebGLUniformLocation;
 
-	public constructor(istate: IState, gl: WebGL2RenderingContext) {
-		this.istate = istate;
+    public constructor(istate: IState, gl: WebGL2RenderingContext) {
+        this.istate = istate;
         this.gl = gl;
-		this.inDrag = false
-		this.mouseIsOut = true
+        this.inDrag = false
+        this.mouseIsOut = true
         this.iter = 0;
         this.lastTime = 0;
         this.nodes = new Array();
-	}
+    }
 
 
 
-	// private createDrawList() {
-	// 	this.setTableBounds();
-	// 	this.drawlist = new Array()
-	// 	for ( let group of this.groups ) {
-	// 		if (group.position[0] + group.radius < this.minX) {
-	// 			continue
-	// 		}
-	// 		if (group.position[0] - group.radius > this.maxX) {
-	// 			continue
-	// 		}
-	// 		if (group.position[1] + group.radius < this.minY) {
-	// 			continue
-	// 		}
-	// 		if (group.position[1] - group.radius > this.maxY) {
-	// 			continue
-	// 		}
-	// 		this.drawlist.push(group)
-	// 	}
-	// 	if (this.listsize != this.drawlist.length) {
-	// 		this.listsize = this.drawlist.length
-	// 		console.log('this.listsize = ' + this.listsize)
-	// 	}
-	// }
+    // private createDrawList() {
+    //     this.setTableBounds();
+    //     this.drawlist = new Array()
+    //     for ( let group of this.groups ) {
+    //         if (group.position[0] + group.radius < this.minX) {
+    //             continue
+    //         }
+    //         if (group.position[0] - group.radius > this.maxX) {
+    //             continue
+    //         }
+    //         if (group.position[1] + group.radius < this.minY) {
+    //             continue
+    //         }
+    //         if (group.position[1] - group.radius > this.maxY) {
+    //             continue
+    //         }
+    //         this.drawlist.push(group)
+    //     }
+    //     if (this.listsize != this.drawlist.length) {
+    //         this.listsize = this.drawlist.length
+    //         console.log('this.listsize = ' + this.listsize)
+    //     }
+    // }
 
-	// private clampCamera() {
-	// 	if (a.cameraX < -a.tabla.width/2) {
-	// 		a.cameraX = -a.tabla.width/2
-	// 	}
-	// 	if (a.cameraX > a.tabla.width/2) {
-	// 		a.cameraX = a.tabla.width/2
-	// 	}
-	// 	if (a.cameraY < -a.tabla.height/2) {
-	// 		a.cameraY = -a.tabla.height/2
-	// 	}
-	// 	if (a.cameraY > a.tabla.height/2) {
-	// 		a.cameraY = a.tabla.height/2
-	// 	}
-	// }
+    // private clampCamera() {
+    //     if (a.cameraX < -a.tabla.width/2) {
+    //         a.cameraX = -a.tabla.width/2
+    //     }
+    //     if (a.cameraX > a.tabla.width/2) {
+    //         a.cameraX = a.tabla.width/2
+    //     }
+    //     if (a.cameraY < -a.tabla.height/2) {
+    //         a.cameraY = -a.tabla.height/2
+    //     }
+    //     if (a.cameraY > a.tabla.height/2) {
+    //         a.cameraY = a.tabla.height/2
+    //     }
+    // }
 
-	public update() {
+    public update() {
         let n = 500
         for (let node of this.nodes) {
             node.incRotationY(2 * Math.PI / 180 * n / 4000)
@@ -93,7 +93,7 @@ export class CWorld {
             n++
         }
         this.setTransformData()
-	}
+    }
 
     private initTransformData() {
         let gl = this.gl
@@ -134,7 +134,7 @@ export class CWorld {
         gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
     }
 
-	public async initialize() {
+    public async initialize() {
         console.log('world::initialize, num nodes: ' + this.istate.agraphlen);
         let designation = 0
         for (let inode of this.istate.nodes) {
@@ -195,95 +195,95 @@ export class CWorld {
         // normals
         gl.enableVertexAttribArray(6);
         gl.vertexAttribPointer(6, 3, gl.FLOAT, false, 24, 12);
-	}
+    }
 
-	// async initializeGl(gl: WebGL2RenderingContext) {
-	// 	this.gl = gl
+    // async initializeGl(gl: WebGL2RenderingContext) {
+    //     this.gl = gl
 
-		// await this.createPieceMaterials(gl)
+        // await this.createPieceMaterials(gl)
 
-		// var a_Position = gl.getAttribLocation(a.g.topMaterial.program, 'a_Position');
-		// if(a_Position < 0) {
-		//   console.log('Failed to get the storage location of a_Position');
-		//   return -1;
-		// } 
-		// a.topPosBuffer = gl.createBuffer();
-		// gl.bindBuffer(gl.ARRAY_BUFFER, a.topPosBuffer);
-		// gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.STATIC_DRAW);
-		// if (this.ipuzzle.dem) {
-		// 	var a_Normal = gl.getAttribLocation(a.g.topMaterial.program, 'a_Normal');
-		// 	if(a_Normal < 0) {
-		// 	  console.log('Failed to get the storage location of a_Normal');
-		// 	  return -1;
-		// 	} 
-		
-		// 	gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 24, 0);
-		// 	gl.enableVertexAttribArray(a_Position);
-		// 	gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 24, 12);
-		// 	gl.enableVertexAttribArray(a_Normal);
-		// } else {
-		// 	gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 8, 0);
-		// 	gl.enableVertexAttribArray(a_Position);
-		// }
+        // var a_Position = gl.getAttribLocation(a.g.topMaterial.program, 'a_Position');
+        // if(a_Position < 0) {
+        //   console.log('Failed to get the storage location of a_Position');
+        //   return -1;
+        // } 
+        // a.topPosBuffer = gl.createBuffer();
+        // gl.bindBuffer(gl.ARRAY_BUFFER, a.topPosBuffer);
+        // gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.STATIC_DRAW);
+        // if (this.ipuzzle.dem) {
+        //     var a_Normal = gl.getAttribLocation(a.g.topMaterial.program, 'a_Normal');
+        //     if(a_Normal < 0) {
+        //       console.log('Failed to get the storage location of a_Normal');
+        //       return -1;
+        //     } 
+        
+        //     gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 24, 0);
+        //     gl.enableVertexAttribArray(a_Position);
+        //     gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 24, 12);
+        //     gl.enableVertexAttribArray(a_Normal);
+        // } else {
+        //     gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 8, 0);
+        //     gl.enableVertexAttribArray(a_Position);
+        // }
 
-	// }
+    // }
 
 
-	public renderGl() {
-		this.iter++
-		if (this.iter % 60 == 0) {
-			let now = Date.now()
-			let delta = now - this.lastTime
+    public renderGl() {
+        this.iter++
+        if (this.iter % 60 == 0) {
+            let now = Date.now()
+            let delta = now - this.lastTime
             console.log('60 frames seconds: ', delta)
-			this.lastTime = now
-		}
+            this.lastTime = now
+        }
 
         let gl = this.gl
         gl.bindVertexArray(this.vao);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.istate.agraphlen);
-	}
+    }
 
-	public release() {
-		// console.log('puzzle release')
-		// for ( let group of this.groups ) {
-		// 	console.log('puzzle release group')
-		// 	for ( let instance of group.instances ) {
-		// 		instance.release()
-		// 		instance = null
-		// 	}
-		// 	group.release()
-		// 	group = null
-		// }			   
-		// this.groups = null 
-		// for ( let piece of this.pieces ) {
-		// 	console.log('puzzle release piece')
-		// 	piece.release()
-		// 	piece = null
-		// }
-		// a.pcamera.release()
-		// a.pcamera = null
-		// this.pieces = null
-		// if (a.gpu) {
-		// 	console.log('puzzle release gpu')
-		// 	a.w.topTextureGpu.destroy()
-		// 	a.w.topTextureGpu = null
-		// 	if (a.w.normalTextureGpu) {
-		// 		a.w.normalTextureGpu.destroy()
-		// 		a.w.normalTextureGpu = null
-		// 	}
-		// }
-		// // release gpu resources, etc.
-		// if (this.collision) {
-		// 	this.collision.collisionBuffer = null
-		// 	this.collision = null
-		// }
-		// this.ipuzzle = null
-		// this.positions = null
-		// this.flip = null
-		// this.info = null
-		// this.backFlip = null
-		// this.backInfo = null
-		// console.log('puzzle release done')
-	}
+    public release() {
+        // console.log('puzzle release')
+        // for ( let group of this.groups ) {
+        //     console.log('puzzle release group')
+        //     for ( let instance of group.instances ) {
+        //         instance.release()
+        //         instance = null
+        //     }
+        //     group.release()
+        //     group = null
+        // }               
+        // this.groups = null 
+        // for ( let piece of this.pieces ) {
+        //     console.log('puzzle release piece')
+        //     piece.release()
+        //     piece = null
+        // }
+        // a.pcamera.release()
+        // a.pcamera = null
+        // this.pieces = null
+        // if (a.gpu) {
+        //     console.log('puzzle release gpu')
+        //     a.w.topTextureGpu.destroy()
+        //     a.w.topTextureGpu = null
+        //     if (a.w.normalTextureGpu) {
+        //         a.w.normalTextureGpu.destroy()
+        //         a.w.normalTextureGpu = null
+        //     }
+        // }
+        // // release gpu resources, etc.
+        // if (this.collision) {
+        //     this.collision.collisionBuffer = null
+        //     this.collision = null
+        // }
+        // this.ipuzzle = null
+        // this.positions = null
+        // this.flip = null
+        // this.info = null
+        // this.backFlip = null
+        // this.backInfo = null
+        // console.log('puzzle release done')
+    }
 }
 
