@@ -120,14 +120,16 @@ const glslIcosa : IShader = {
   in mat4 a_model;
   out vec4 vColor;
   void main(){
+    float secs = u_params.x * 0.00056 / a_metadata.x;
+    vec4 brownian = texture(u_noiseTexture, vec2(secs,0.5)) * 2.0;
     vec3 lightDirection = normalize(vec3(0.2, 0.2, -1.0));
     mat4 normalMatrix = inverse(a_model);
     normalMatrix = transpose(normalMatrix);
     vec3 transformedNormal = (normalMatrix * vec4(a_normal, 1.0)).xyz;
-    float light = dot(transformedNormal, lightDirection) + a_metadata.x - a_metadata.x;
-    light = 0.3 + light * 0.7 + u_params.x - u_params.x;
+    float light = dot(transformedNormal, lightDirection);
+    light = 0.3 + light * 0.7;
     vColor = vec4(a_color.r * light, a_color.g * light, a_color.b * light, 1.0);
-    gl_Position = u_viewProjection * a_model * vec4(a_position, 1.0);
+    gl_Position = u_viewProjection * a_model * vec4(a_position + brownian.xyz, 1.0);
   }
   `,
     fragment: `#version 300 es

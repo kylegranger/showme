@@ -32,16 +32,22 @@ export class CWorld {
     private transformBuffer: WebGLBuffer
     private transformData: Float32Array
     private vao: WebGLVertexArrayObject
-    public viewProjectionLoc: WebGLUniformLocation;
+    public viewProjectionLoc: WebGLUniformLocation
+    public paramsLoc: WebGLUniformLocation
+    public noiseTextureLoc: WebGLUniformLocation
+    private startTime: number
+    private params: vec4
 
     public constructor(istate: IState, gl: WebGL2RenderingContext) {
-        this.istate = istate;
-        this.gl = gl;
+        this.istate = istate
+        this.gl = gl
         this.inDrag = false
         this.mouseIsOut = true
-        this.iter = 0;
-        this.lastTime = 0;
-        this.nodes = new Array();
+        this.iter = 0
+        this.lastTime = 0
+        this.nodes = new Array()
+        this.startTime = Date.now()
+        this.params = vec4.create()
     }
 
 
@@ -87,12 +93,16 @@ export class CWorld {
 
     public update() {
         let n = 500
+        let now = Date.now();
         for (let node of this.nodes) {
             node.incRotationY(2 * Math.PI / 180 * n / 4000)
             node.updateMatrix()
             n++
         }
-        this.setTransformData()
+        this.updateTransformData()
+        let done = Date.now();
+        //console.log(`now ${now} done ${done} delta ${done-now}`)
+
     }
 
     private initTransformData() {
@@ -100,15 +110,12 @@ export class CWorld {
         this.transformData = new Float32Array(this.istate.agraphlen * NODE_TRANSFORM_SIZE);
         let n: number = 0;
         for (let node of this.nodes) {
-            for (let i = 0; i < 4; i++ ) {
-                this.transformData[n++] = node.color[i]
-            }
-            for (let i = 0; i < 4; i++ ) {
-                this.transformData[n++] = node.metadata[i]
-            }
-            for (let i = 0; i < 16; i++ ) {
-                this.transformData[n++] = node.matWorld[i]
-            }
+            this.transformData.set(node.color, n);
+            n += 4
+            this.transformData.set(node.metadata, n);
+            n += 4
+            this.transformData.set(node.matWorld, n);
+            n += 16
         }
         console.log('initTransformData: len ', this.transformData.length)
         this.transformBuffer = gl.createBuffer();
@@ -116,19 +123,12 @@ export class CWorld {
         gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
     }
 
-    private setTransformData() {
+    private updateTransformData() {
         let gl = this.gl
-        let n: number = 0;
+        let n: number = 8;
         for (let node of this.nodes) {
-            for (let i = 0; i < 4; i++ ) {
-                this.transformData[n++] = node.color[i]
-            }
-            for (let i = 0; i < 4; i++ ) {
-                this.transformData[n++] = node.metadata[i]
-            }
-            for (let i = 0; i < 16; i++ ) {
-                this.transformData[n++] = node.matWorld[i]
-            }
+            this.transformData.set(node.matWorld, n);
+            n += 24
         }
         gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
@@ -151,6 +151,9 @@ export class CWorld {
         const metadataLoc = gl.getAttribLocation(glShaders[0], 'a_metadata');
         const modelLoc = gl.getAttribLocation(glShaders[0], 'a_model');        const normalLoc = gl.getAttribLocation(glShaders[0], 'a_normal');
         this.viewProjectionLoc = gl.getUniformLocation(glShaders[0], 'u_viewProjection');
+        this.paramsLoc = gl.getUniformLocation(glShaders[0], 'u_params');
+        this.noiseTextureLoc = gl.getUniformLocation(glShaders[0], 'u_noiseTexture');
+
         console.log('positionLoc ', positionLoc)
         console.log('modelLoc ', modelLoc)
         console.log('colorLoc ', colorLoc)
@@ -238,7 +241,15 @@ export class CWorld {
             this.lastTime = now
         }
 
+        let elapsed = this.startTime - Date.now()
+        this.params[0] = elapsed
         let gl = this.gl
+        gl.uniform4fv(this.paramsLoc, this.params);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.noiseTexture);
+        gl.uniform1i(this.noiseTextureLoc, 0);
+
         gl.bindVertexArray(this.vao);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.istate.agraphlen);
     }
