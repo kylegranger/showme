@@ -242,7 +242,7 @@ export class CWorld {
         }
 
         let elapsed = this.startTime - Date.now()
-        this.params[0] = elapsed
+        this.params[0] = elapsed / 1000.0;
         let gl = this.gl
         gl.uniform4fv(this.paramsLoc, this.params);
 
