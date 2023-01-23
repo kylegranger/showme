@@ -6,9 +6,9 @@ import { mat4, vec3, vec4 } from 'gl-matrix'
 import { randomColor } from './util'
 
 
-const WORLD_WIDTH: number = 2000;
-const WORLD_HEIGHT: number = 2000;
-const WORLD_DEPTH: number = 590;
+const WORLD_WIDTH: number = 4096;
+const WORLD_HEIGHT: number = 2048;
+const WORLD_DEPTH: number = 64;
 
 const XDIVISOR = Math.pow(2, 32);
 const YDIVISOR = Math.pow(2, 16);
@@ -152,7 +152,7 @@ export class CNode {
         this.setPosition(
             x * WORLD_WIDTH / 65536 - WORLD_WIDTH/2,
             y * WORLD_HEIGHT / 65536 - WORLD_HEIGHT/2,
-            z * WORLD_DEPTH / 65536 - WORLD_DEPTH/2,
+            z * WORLD_DEPTH / 65536,
         )
     }
 

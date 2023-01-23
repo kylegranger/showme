@@ -38,7 +38,6 @@ export function initShadersGl() {
     for (let i = 0; i < EShader.Last; i++) {
       glShaders[i] = createProgram(glslSrc[i])
     }
-    a.gl.useProgram(glShaders[0]);
 }
 
 
@@ -121,7 +120,7 @@ const glslIcosa : IShader = {
   out vec4 vColor;
   void main(){
     float secs = u_params.x * a_metadata.x * 0.0000036;
-    vec4 brownian = texture(u_noiseTexture, vec2(secs,0.5)) * 2.5;
+    vec4 brownian = texture(u_noiseTexture, vec2(secs,0.5)) * 3.6;
     vec3 lightDirection = normalize(vec3(0.2, 0.2, -1.0));
     mat4 normalMatrix = inverse(a_model);
     normalMatrix = transpose(normalMatrix);
@@ -141,9 +140,33 @@ const glslIcosa : IShader = {
   }
   `
   }
-  
+
+
+  const glslWorldMap : IShader = {
+    vertex: `#version 300 es
+  uniform mat4 u_viewProjection;
+  in vec2 a_position;
+  in vec2 a_uv;
+  out vec2 vUv;
+
+  void main(){
+    vUv = a_uv;
+    gl_Position = u_viewProjection * vec4(a_position, -20.0, 1.0);
+  }
+  `,
+  fragment: `#version 300 es
+  precision highp float;
+  in vec2 vUv;
+  uniform sampler2D u_worldMapTexture;
+  out vec4 fragColor;
+  void main() {
+    fragColor = texture(u_worldMapTexture, vUv);
+  }
+  `
+  }
 
 
 let glslSrc : IShader [] = [
-    glslIcosa
+    glslIcosa,
+    glslWorldMap
 ]

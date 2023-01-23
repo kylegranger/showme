@@ -222,7 +222,6 @@ export class CShowme {
         this.update()
 
         if (a.world) {
-            a.gl.uniformMatrix4fv(a.world.viewProjectionLoc, false, a.matViewProjection);
             a.world.renderGl()
         }
 

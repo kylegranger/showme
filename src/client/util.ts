@@ -106,6 +106,8 @@ export async function loadTexture(gl: WebGL2RenderingContext, url: string) : Pro
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
                 srcFormat, srcType, image);
 
+    console.log(`loadTexture ${url}, width ${image.width}, height ${image.height}`)
+
     if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
         // Yes, it's a power of 2. Generate mips.
         gl.generateMipmap(gl.TEXTURE_2D);
