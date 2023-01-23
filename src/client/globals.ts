@@ -19,6 +19,8 @@ export interface IGlobalInfo {
     matView: mat4
     matViewProjection: mat4
     matProjection: mat4
+    timeNode: Text,
+    fpsNode: Text
 }
 
 export let a : IGlobalInfo= {
@@ -34,6 +36,8 @@ export let a : IGlobalInfo= {
     matView: null,
     matProjection: null,
     matViewProjection: null,
-    world: null
+    world: null,
+    timeNode: null,
+    fpsNode: null
 } 
 

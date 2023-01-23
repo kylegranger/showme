@@ -17,7 +17,6 @@ export class CWorld {
     public istate: IState
     public nodes: CNode []
     public  gl: WebGL2RenderingContext
-    private iter: number
     private noiseTexture: WebGLTexture
     private worldMapTexture: WebGLTexture
 
@@ -50,7 +49,6 @@ export class CWorld {
         this.gl = gl
         this.inDrag = false
         this.mouseIsOut = true
-        this.iter = 0
         this.lastTime = 0
         this.nodes = new Array()
         this.startTime = Date.now()
@@ -241,14 +239,6 @@ export class CWorld {
 
 
     public renderGl() {
-        this.iter++
-        if (this.iter % 60 == 0) {
-            let now = Date.now()
-            let delta = now - this.lastTime
-            console.log('60 frames seconds: ', delta)
-            this.lastTime = now
-        }
-
         let elapsed = this.startTime - Date.now()
         this.params[0] = elapsed / 1000.0;
         let gl = this.gl

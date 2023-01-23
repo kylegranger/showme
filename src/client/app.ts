@@ -14,6 +14,9 @@ export class CApp {
     public  gl: any
     private initialized: boolean
     private mousekey: CMousekeyCtlr
+    private startTime: number
+    private lastTime: number
+    private iter: number
 
 
 
@@ -29,12 +32,26 @@ public constructor(canvas: HTMLCanvasElement) {
         return;
     }
 
+    // look up the elements we want to affect
+    var timeElement = document.querySelector("#time");
+    var fpsElement = document.querySelector("#fps");
+
+    // Create text nodes to save some time for the browser.
+    a.timeNode = document.createTextNode("");
+    a.fpsNode = document.createTextNode("");
+
+    // Add those text nodes where they need to go
+    timeElement.appendChild(a.timeNode);
+    fpsElement.appendChild(a.fpsNode);
+
     let self = this
     self.readTextFile('data/state.json', async function(atext: string) {
         let istate = <IState>JSON.parse(atext)
             await self.init(istate)
     });
-
+    this.startTime = Date.now()/1000
+    this.lastTime = 0
+    this.iter = 0
 }
 
 async init(state: IState) {
@@ -70,8 +87,22 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
     }
 
     public renderGl() {
+
+        this.iter++
+        if (this.iter % 15 == 0) {
+            let now = Date.now()
+            let delta = now - this.lastTime
+            this.lastTime = now
+            let fps = 1000*15/delta;
+            a.fpsNode.nodeValue = fps.toFixed(6);
+
+        }
+
+
         a.gl.clear(a.gl.COLOR_BUFFER_BIT | a.gl.DEPTH_BUFFER_BIT);
-        if (this.showme) {            this.showme.renderGl()
+        a.timeNode.nodeValue = (Date.now()/1000 - this.startTime).toFixed(2);   // 2 decimal places        
+        if (this.showme) {
+            this.showme.renderGl()
         }
     }
 

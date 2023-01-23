@@ -5,8 +5,6 @@ import { PCamera } from './camera';
 
 export class CShowme {
     public  gl: WebGL2RenderingContext
-    private iter: number
-    private lastTime: number
     public actions: IKeyAction []
     private velPanX: number
     private velPanY: number
@@ -22,8 +20,6 @@ export class CShowme {
         this.velPanY = 0
         this.velZoom = 0
         this.mouseIsOut = true
-        this.iter = 0
-        this.lastTime = 0
     }
     
 
@@ -212,12 +208,7 @@ export class CShowme {
     }
 
     public renderGl() {
-        this.iter++
-        if (this.iter % 60 == 0) {
-            let now = Date.now()
-            let delta = now - this.lastTime
-            this.lastTime = now
-        }
+
 
         this.update()
 
