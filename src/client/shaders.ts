@@ -151,7 +151,7 @@ const glslIcosa : IShader = {
 
   void main(){
     vUv = a_uv;
-    gl_Position = u_viewProjection * vec4(a_position, -20.0, 1.0);
+    gl_Position = u_viewProjection * vec4(a_position, 0.0, 1.0);
   }
   `,
   fragment: `#version 300 es

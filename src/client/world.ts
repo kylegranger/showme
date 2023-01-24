@@ -115,8 +115,10 @@ export class CWorld {
 
     private initTransformData() {
         let gl = this.gl
-        this.transformData = new Float32Array(this.istate.agraphlen * NODE_TRANSFORM_SIZE);
+        this.transformData = new Float32Array(this.istate.agraph_length * NODE_TRANSFORM_SIZE);
         let n: number = 0;
+        console.log('this.istate.agraph_length : ', this.istate.agraph_length)
+        console.log('nodes length : ', this.nodes.length)
         for (let node of this.nodes) {
             this.transformData.set(node.color, n);
             n += 4
@@ -143,7 +145,7 @@ export class CWorld {
     }
 
     public async initialize() {
-        console.log('world::initialize, num nodes: ' + this.istate.agraphlen);
+        console.log('world::initialize, num nodes: ' + this.istate.agraph_length);
         let designation = 0
         for (let inode of this.istate.nodes) {
             let node = new CNode(inode, designation)
@@ -251,7 +253,7 @@ export class CWorld {
         gl.bindTexture(gl.TEXTURE_2D, this.noiseTexture);
         gl.uniform1i(this.noiseTextureLoc, 0);
         gl.bindVertexArray(this.icosaVao);
-        gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.istate.agraphlen);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.istate.agraph_length);
 
         // World Map
         gl.useProgram(glShaders[EShader.WorldMap]);

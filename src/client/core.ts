@@ -44,14 +44,23 @@ export interface IKeyAction {
 }
 
 export interface INode {
-    id: string
+    ip: string
     betweenness: number
     closeness: number
     num_connections: number
+    geolocation: {
+        ip: string
+        country: string
+        city: string
+        latitude: number
+        longitude: number
+        timezone: string
+        isp: string
+    }
 }
 
 export interface IState {
-    agraphlen: number
+    agraph_length: number
     elapsed: number
     nodes: INode []
     min_betweenness: number

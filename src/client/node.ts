@@ -8,7 +8,7 @@ import { randomColor } from './util'
 
 const WORLD_WIDTH: number = 4096;
 const WORLD_HEIGHT: number = 2048;
-const WORLD_DEPTH: number = 64;
+const WORLD_DEPTH: number = 48;
 
 const XDIVISOR = Math.pow(2, 32);
 const YDIVISOR = Math.pow(2, 16);
@@ -145,14 +145,15 @@ export class CNode {
         this.metadata[2] = inode.closeness;
         this.metadata[3] = designation;
 
-        let n: number = Number('0x' + this.inode.id);
-        let x: number = Math.floor(n / XDIVISOR)
-        let y: number = Math.floor(n / YDIVISOR) & 0xffff;
-        let z: number = n & 0xffff;
+        // normalize longitude -180...180
+        let x: number = (this.inode.geolocation.longitude + 180) / 360;
+        // normalize latitude 90...-90
+        let y: number = (this.inode.geolocation.latitude + 90) / 180;
+        let z: number = Math.random();
         this.setPosition(
-            x * WORLD_WIDTH / 65536 - WORLD_WIDTH/2,
-            y * WORLD_HEIGHT / 65536 - WORLD_HEIGHT/2,
-            z * WORLD_DEPTH / 65536,
+            x * WORLD_WIDTH - WORLD_WIDTH/2,
+            y * WORLD_HEIGHT - WORLD_HEIGHT/2,
+            z * WORLD_DEPTH,
         )
     }
 
