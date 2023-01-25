@@ -145,13 +145,19 @@ export class CNode {
         this.metadata[2] = inode.closeness;
         this.metadata[3] = designation;
 
-        // normalize longitude -180...180
+        // normalize and perform Wager VI projection on longitude/x
+        // https://en.wikipedia.org/wiki/Wagner_VI_projection
+        // shader does inverse
         let x: number = (this.inode.geolocation.longitude + 180) / 360;
-        // normalize latitude 90...-90
         let y: number = (this.inode.geolocation.latitude + 90) / 180;
         let z: number = Math.random();
+
+        let longitude = x - 0.5;
+        let latitude = y - 0.5;
+        let transformedX = 0.5 + longitude * Math.sqrt(1 - 3*latitude*latitude);
+
         this.setPosition(
-            x * WORLD_WIDTH - WORLD_WIDTH/2,
+            transformedX * WORLD_WIDTH - WORLD_WIDTH/2,
             y * WORLD_HEIGHT - WORLD_HEIGHT/2,
             z * WORLD_DEPTH * 0.8 + WORLD_DEPTH * 0.2,
         )

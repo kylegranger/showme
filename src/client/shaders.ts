@@ -160,7 +160,16 @@ const glslIcosa : IShader = {
   uniform sampler2D u_worldMapTexture;
   out vec4 fragColor;
   void main() {
-    fragColor = texture(u_worldMapTexture, vUv);
+    float latitude = vUv.x - 0.5;
+    float longitude = vUv.y - 0.5;
+    float theta = asin(1.732050808*longitude);
+    float x = latitude / cos(theta) + 0.5;
+    vec2 transformedUv = vec2(x, vUv.y);
+    if (transformedUv.x < 0.0 || transformedUv.x > 1.0) {
+        fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    } else {
+        fragColor = texture(u_worldMapTexture, transformedUv);
+    }
   }
   `
   }

@@ -162,9 +162,9 @@ export class CWorld {
         let width = gl.getParameter(gl.MAX_TEXTURE_SIZE)
         console.log('max width is ', width);
         if (width >= 8192) {
-            this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_trim_8k.jpeg");
+            this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_8k.jpeg");
         } else {
-            this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_trim_4k.jpeg");
+            this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_4k.jpeg");
         }
 
         // Icosa shader locations
