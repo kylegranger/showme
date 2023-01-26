@@ -48,7 +48,7 @@ export class CPicker {
     }
 
 
-    public pickNodePrep(x: number, y: number) {
+    public preRender(x: number, y: number) {
         this.x = x;
         this.y = y;
         let gl = this.gl
@@ -58,7 +58,7 @@ export class CPicker {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
 
-    public pickNodePost() : number {
+    public postRender() : number {
         let gl = this.gl
         let offsetX = Math.floor(this.x * this.textureWidth)
         let offsetY = Math.floor(this.y * this.textureWidth)

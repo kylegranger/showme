@@ -64,7 +64,6 @@ const indices = [
 
 export function initIcosa(gl: WebGL2RenderingContext) : WebGLBuffer {
     console.log('initIcosa')
-
     let size = 20 * 3 * 6;
     let icosaData : Float32Array = new Float32Array(size)
     let i = 0;

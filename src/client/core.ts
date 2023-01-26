@@ -7,18 +7,6 @@ export enum EShader {
     Last
 }
 
-// export enum EUniform {
-//     Info = 0,
-//     Mv,
-//     Mvp,
-//     PieceTexture,
-//     Projection,
-//     NormalTexture,
-//     Flip,
-//     Color,
-//     ColorSat
-// }
-
 export interface ICamera {
     position: [number, number, number]
 }

@@ -10,10 +10,6 @@ const WORLD_WIDTH: number = 3600;
 const WORLD_HEIGHT: number = 1800;
 const WORLD_DEPTH: number = 24;
 
-const XDIVISOR = Math.pow(2, 32);
-const YDIVISOR = Math.pow(2, 16);
-
-
 export class CNode {
     public inode: INode
     public color: vec4
@@ -56,24 +52,6 @@ export class CNode {
     public getRotationX() : number {
         return this.rotation[0]
     }
-//     private clampPosition() {
-//         if (this.position[0] < -a.tabla.width/2) {
-//             this.position[0] = -a.tabla.width/2
-//         }
-//         if (this.position[0] > a.tabla.width/2) {
-//             this.position[0] = a.tabla.width/2
-//         }
-//         if (this.position[1] < -a.tabla.height/2) {
-//             this.position[1] = -a.tabla.height/2
-//         }
-//         if (this.position[1] > a.tabla.height/2) {
-//             this.position[1] = a.tabla.height/2
-//         }
-// }
-
-    // public renderTopGpu(gl: WebGL2RenderingContext) {
-    // }
-
 
     public updatePositionRadius(isSub: boolean) {
         this.positionRadius = vec4.fromValues(this.position[0], this.position[1], this.radius, isSub ? 1 : 0)
@@ -86,43 +64,6 @@ export class CNode {
         mat4.multiply(this.matMVP, proj, this.matMV)
     }
 
-    public renderTopPhong(gl: WebGL2RenderingContext) {
-        // this.updateMatrix()
-        // for (let instance of this.instances) {
-        //     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, instance.piece.topIndexBuffer);
-        //     gl.uniformMatrix4fv(a.g.topMaterial.uniforms.descs[EUniform.Mv].location, false, this.matMV);
-        //     gl.uniformMatrix4fv(a.g.topMaterial.uniforms.descs[EUniform.Projection].location, false, a.matProjection);
-        //     gl.drawElements(gl.TRIANGLES, instance.piece.topIndexLength, gl.UNSIGNED_INT, 0);
-        // }
-    }
-
-    public renderSide(gl: WebGL2RenderingContext) {
-
-        // for (let instance of this.instances) {
-        //     let piece : CPiece = instance.piece
-        //     gl.bindBuffer(gl.ARRAY_BUFFER, piece.sidePosBuffer)
-        //     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, piece.topIndexBuffer);
-
-        //     gl.uniformMatrix4fv(a.g.shaderMaterials[EShader.Side].uniforms.descs[EUniform.Mv].location, false, this.matMV);
-        //     gl.uniformMatrix4fv(a.g.shaderMaterials[EShader.Side].uniforms.descs[EUniform.Projection].location, false, a.matProjection);
-
-        //     var a_Position = gl.getAttribLocation(a.g.shaderMaterials[EShader.Side].program, 'a_Position');
-        //     var a_Normal = gl.getAttribLocation(a.g.shaderMaterials[EShader.Side].program, 'a_Normal');
-        //     var a_Uv = gl.getAttribLocation(a.g.shaderMaterials[EShader.Side].program, 'a_Uv');
-
-        //     gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 8*4, 0);
-        //     gl.enableVertexAttribArray(a_Position);
-
-        //     gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, 8*4, 3*4);
-        //     gl.enableVertexAttribArray(a_Normal);
-
-        //     gl.vertexAttribPointer(a_Uv, 2, gl.FLOAT, false, 8*4, 6*4);
-        //     gl.enableVertexAttribArray(a_Uv);
-
-        //     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, piece.sideIndexBuffer);
-        //     gl.drawElements(gl.TRIANGLES, piece.sideIndexLength, gl.UNSIGNED_SHORT, 0);
-        // }
-    }
     public constructor(inode: INode, id: number) {
         this.inode = inode;
         this.metadata = vec4.create()
@@ -173,20 +114,15 @@ export class CNode {
     }
 
     public updateMatrix() {
-        // let rx = mat4.create()
-        // let rz = mat4.create()
         let ry = mat4.create()
         let t = mat4.create()
         mat4.identity(this.matWorld)
         mat4.translate(this.matWorld, this.matWorld, vec3.fromValues(-this.center[0], -this.center[1], 0))
         mat4.fromYRotation(ry, this.rotation[1])
-        // mat4.fromZRotation(rz, this.rotation[2])
         mat4.multiply(this.matWorld, ry, this.matWorld)
-        // mat4.multiply(this.matWorld, rx, this.matWorld)
         mat4.fromTranslation(t, this.position)
         mat4.multiply(this.matWorld, t, this.matWorld)
         mat4.multiply(this.matMV, a.matView, this.matWorld)
         mat4.multiply(this.matMVP, a.matProjection, this.matMV)
-
     }
 }

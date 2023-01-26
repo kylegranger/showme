@@ -19,8 +19,6 @@ export class CApp {
     private iter: number
 
 
-
-
 public constructor(canvas: HTMLCanvasElement) {
     a.canvas = canvas
     canvas.width = window.innerWidth
@@ -32,31 +30,31 @@ public constructor(canvas: HTMLCanvasElement) {
         return;
     }
 
-    // look up the elements we want to affect
-    var timeElement = document.querySelector("#time");
-    var fpsElement = document.querySelector("#fps");
-    var latitudeElement = document.querySelector("#latitude");
-    var longitudeElement = document.querySelector("#longitude");
-    var cityElement = document.querySelector("#city");
-    var countryElement = document.querySelector("#country");
-
     // Create text nodes to save some time for the browser.
     a.timeNode = document.createTextNode("");
     a.fpsNode = document.createTextNode("");
+    a.ipNode = document.createTextNode("");
+    a.betweennessNode = document.createTextNode("");
+    a.closenessNode = document.createTextNode("");
+    a.connectionsNode = document.createTextNode("");
     a.latitudeNode = document.createTextNode("");
     a.longitudeNode = document.createTextNode("");
     a.cityNode = document.createTextNode("");
     a.countryNode = document.createTextNode("");
 
     // Add those text nodes where they need to go
-    timeElement.appendChild(a.timeNode);
-    fpsElement.appendChild(a.fpsNode);
-    latitudeElement.appendChild(a.latitudeNode);
-    longitudeElement.appendChild(a.longitudeNode);
-    cityElement.appendChild(a.cityNode);
-    countryElement.appendChild(a.countryNode);
+    document.querySelector("#time").appendChild(a.timeNode);
+    document.querySelector("#fps").appendChild(a.fpsNode);
+    document.querySelector("#ip").appendChild(a.ipNode);
+    document.querySelector("#betweenness").appendChild(a.betweennessNode);
+    document.querySelector("#closeness").appendChild(a.closenessNode);
+    document.querySelector("#connections").appendChild(a.connectionsNode);
+    document.querySelector("#latitude").appendChild(a.latitudeNode);
+    document.querySelector("#longitude").appendChild(a.longitudeNode);
+    document.querySelector("#city").appendChild(a.cityNode);
+    document.querySelector("#country").appendChild(a.countryNode);
     document.getElementById("overlayRight").style.visibility = "hidden";
-    
+
     let self = this
     self.readTextFile('data/state-2.json', async function(atext: string) {
         let istate = <IState>JSON.parse(atext)
@@ -87,20 +85,11 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
         gl.frontFace(gl.CW)
         gl.cullFace(gl.BACK)
         gl.enable(gl.CULL_FACE)
-
         initShadersGl()
-
-        var ext = gl.getExtension('OES_element_index_uint');
-        console.log('ext = ' + ext)
-
-        // a.gl2 = new CWebGl()
-        // await a.gl2.initialize()
         await this.initShowme()
-
     }
 
-    public renderGl() {
-
+    private updateFps() {
         this.iter++
         if (this.iter % 15 == 0) {
             let now = Date.now()
@@ -108,10 +97,11 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
             this.lastTime = now
             let fps = 1000*15/delta;
             a.fpsNode.nodeValue = fps.toFixed(6);
-
         }
+    }
 
-
+    public renderGl() {
+        this.updateFps();
         a.gl.clear(a.gl.COLOR_BUFFER_BIT | a.gl.DEPTH_BUFFER_BIT);
         a.timeNode.nodeValue = (Date.now()/1000 - this.startTime).toFixed(2);   // 2 decimal places        
         if (this.showme) {

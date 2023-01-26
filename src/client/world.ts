@@ -50,6 +50,8 @@ export class CWorld {
     public pickerNoiseTextureLoc: WebGLUniformLocation
     private startTime: number
     private params: vec4
+    private selectedId: number
+    private white: vec4;
 
     public constructor(istate: IState, gl: WebGL2RenderingContext) {
         this.istate = istate
@@ -61,6 +63,8 @@ export class CWorld {
         this.startTime = Date.now()
         this.params = vec4.create()
         this.picker = new CPicker()
+        this.selectedId = -1
+        this.white = vec4.fromValues(1, 1, 1, 1)
     }
 
 
@@ -124,13 +128,17 @@ export class CWorld {
     public handleClick(x: number, y: number) {
         console.log(`world: handleClick: ${x}, ${y}`)
         let screenCoords : vec2 = vec2.fromValues(x/a.canvas.width, 1 - y/a.canvas.height )
-        this.picker.pickNodePrep(screenCoords[0], screenCoords[1])
+        this.picker.preRender(screenCoords[0], screenCoords[1])
         this.renderPicker();
-        let id = this.picker.pickNodePost();
+        let id = this.picker.postRender();
         console.log(`  got id ${id}`)
         if (id >= 0) {
             let node = this.nodes[id];
             console.log('node: ', node.inode);
+            a.ipNode.nodeValue = node.inode.ip
+            a.betweennessNode.nodeValue = node.inode.betweenness.toFixed(6)
+            a.closenessNode.nodeValue = node.inode.closeness.toFixed(6)
+            a.connectionsNode.nodeValue = node.inode.num_connections.toString()
             a.latitudeNode.nodeValue = node.inode.geolocation.latitude.toFixed(4)
             a.longitudeNode.nodeValue = node.inode.geolocation.longitude.toFixed(4)
             a.cityNode.nodeValue = node.inode.geolocation.city
@@ -140,6 +148,19 @@ export class CWorld {
         } else {
             // hide 
             document.getElementById("overlayRight").style.visibility = "hidden";
+        }
+        if (id != this.selectedId) {
+            if (this.selectedId != -1) {
+                // restore color
+                console.log('restore color id ', this.selectedId)
+                this.transformData.set(this.nodes[this.selectedId].color, this.selectedId*NODE_TRANSFORM_SIZE);
+            }
+            if (id != -1) {
+                // set new selection to white
+                console.log('set white id ', id)
+                this.transformData.set(this.white, id*NODE_TRANSFORM_SIZE);
+            }
+            this.selectedId = id
         }
     }
 
@@ -202,8 +223,7 @@ export class CWorld {
             this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_4k.jpeg");
         }
 
-        // Icosa 
-        //
+        // Icosa -------------------------------------------
         let positionLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_position');
         let colorLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_color');
         let metadataLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_metadata');
@@ -257,8 +277,7 @@ export class CWorld {
         gl.enableVertexAttribArray(6);
         gl.vertexAttribPointer(6, 3, gl.FLOAT, false, 24, 12);
 
-        // Picker
-        //
+        // Picker ------------------------------------------------------
         positionLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_position');
         let pickerColorLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_pickerColor');
         metadataLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_metadata');
@@ -304,15 +323,11 @@ export class CWorld {
         gl.enableVertexAttribArray(4);
         gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 24, 0);
 
-        // World Map
-        //
+        // World Map ------------------------------------------------------------
         positionLoc = gl.getAttribLocation(glShaders[EShader.WorldMap], 'a_position');
         const uvLoc = gl.getAttribLocation(glShaders[EShader.WorldMap], 'a_uv');
         this.worldMapVPLoc = gl.getUniformLocation(glShaders[EShader.WorldMap], 'u_viewProjection');
         this.worldMapTextureLoc = gl.getUniformLocation(glShaders[EShader.WorldMap], 'u_worldMapTexture');
-
-        console.log('world map positionLoc ', positionLoc)
-        console.log('uvLoc ', uvLoc)
 
         this.worldMapGeometry = initWorldMap(gl)
         this.worldMapVao = gl.createVertexArray();
