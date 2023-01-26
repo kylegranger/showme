@@ -119,8 +119,8 @@ const glslIcosa : IShader = {
   in mat4 a_model;
   out vec4 vColor;
   void main(){
-    float secs = u_params.x * a_metadata.x * 0.000008;
-    vec4 brownian = texture(u_noiseTexture, vec2(secs,0.5)) * 2.4;
+    float secs = u_params.x * a_metadata.x * 0.000005;
+    vec4 brownian = texture(u_noiseTexture, vec2(secs,0.5)) * 1.2;
     vec3 lightDirection = normalize(vec3(0.2, 0.2, -1.0));
     mat4 normalMatrix = inverse(a_model);
     normalMatrix = transpose(normalMatrix);
@@ -153,8 +153,8 @@ const glslIcosa : IShader = {
   in mat4 a_model;
   out vec4 vColor;
   void main(){
-    float secs = u_params.x * a_metadata.x * 0.000008;
-    vec4 brownian = texture(u_noiseTexture, vec2(secs,0.5)) * 2.4;
+    float secs = u_params.x * a_metadata.x * 0.000005;
+    vec4 brownian = texture(u_noiseTexture, vec2(secs,0.5)) * 1.2;
     vColor = a_pickerColor;
     gl_Position = u_viewProjection * a_model * vec4(a_position + brownian.xyz, 1.0);
   }

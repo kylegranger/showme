@@ -35,15 +35,28 @@ public constructor(canvas: HTMLCanvasElement) {
     // look up the elements we want to affect
     var timeElement = document.querySelector("#time");
     var fpsElement = document.querySelector("#fps");
+    var latitudeElement = document.querySelector("#latitude");
+    var longitudeElement = document.querySelector("#longitude");
+    var cityElement = document.querySelector("#city");
+    var countryElement = document.querySelector("#country");
 
     // Create text nodes to save some time for the browser.
     a.timeNode = document.createTextNode("");
     a.fpsNode = document.createTextNode("");
+    a.latitudeNode = document.createTextNode("");
+    a.longitudeNode = document.createTextNode("");
+    a.cityNode = document.createTextNode("");
+    a.countryNode = document.createTextNode("");
 
     // Add those text nodes where they need to go
     timeElement.appendChild(a.timeNode);
     fpsElement.appendChild(a.fpsNode);
-
+    latitudeElement.appendChild(a.latitudeNode);
+    longitudeElement.appendChild(a.longitudeNode);
+    cityElement.appendChild(a.cityNode);
+    countryElement.appendChild(a.countryNode);
+    document.getElementById("overlayRight").style.visibility = "hidden";
+    
     let self = this
     self.readTextFile('data/state-2.json', async function(atext: string) {
         let istate = <IState>JSON.parse(atext)

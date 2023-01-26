@@ -123,14 +123,23 @@ export class CWorld {
 
     public handleClick(x: number, y: number) {
         console.log(`world: handleClick: ${x}, ${y}`)
-		let screenCoords : vec2 = vec2.fromValues(x/a.canvas.width, 1 - y/a.canvas.height )
-		this.picker.pickNodePrep(screenCoords[0], screenCoords[1])
+        let screenCoords : vec2 = vec2.fromValues(x/a.canvas.width, 1 - y/a.canvas.height )
+        this.picker.pickNodePrep(screenCoords[0], screenCoords[1])
         this.renderPicker();
         let id = this.picker.pickNodePost();
         console.log(`  got id ${id}`)
         if (id >= 0) {
             let node = this.nodes[id];
             console.log('node: ', node.inode);
+            a.latitudeNode.nodeValue = node.inode.geolocation.latitude.toFixed(4)
+            a.longitudeNode.nodeValue = node.inode.geolocation.longitude.toFixed(4)
+            a.cityNode.nodeValue = node.inode.geolocation.city
+            a.countryNode.nodeValue = node.inode.geolocation.country
+            // display
+            document.getElementById("overlayRight").style.visibility = "visible";
+        } else {
+            // hide 
+            document.getElementById("overlayRight").style.visibility = "hidden";
         }
     }
 
@@ -354,49 +363,6 @@ export class CWorld {
         gl.uniform1i(this.pickerNoiseTextureLoc, 0);
         gl.bindVertexArray(this.pickerVao);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.istate.agraph_length);
-    }
-
-    public release() {
-        // console.log('puzzle release')
-        // for ( let group of this.groups ) {
-        //     console.log('puzzle release group')
-        //     for ( let instance of group.instances ) {
-        //         instance.release()
-        //         instance = null
-        //     }
-        //     group.release()
-        //     group = null
-        // }               
-        // this.groups = null 
-        // for ( let piece of this.pieces ) {
-        //     console.log('puzzle release piece')
-        //     piece.release()
-        //     piece = null
-        // }
-        // a.pcamera.release()
-        // a.pcamera = null
-        // this.pieces = null
-        // if (a.gpu) {
-        //     console.log('puzzle release gpu')
-        //     a.w.topTextureGpu.destroy()
-        //     a.w.topTextureGpu = null
-        //     if (a.w.normalTextureGpu) {
-        //         a.w.normalTextureGpu.destroy()
-        //         a.w.normalTextureGpu = null
-        //     }
-        // }
-        // // release gpu resources, etc.
-        // if (this.collision) {
-        //     this.collision.collisionBuffer = null
-        //     this.collision = null
-        // }
-        // this.ipuzzle = null
-        // this.positions = null
-        // this.flip = null
-        // this.info = null
-        // this.backFlip = null
-        // this.backInfo = null
-        // console.log('puzzle release done')
     }
 }
 
