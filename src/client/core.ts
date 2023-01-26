@@ -2,6 +2,7 @@
 
 export enum EShader {
     Icosa = 0,
+    Picker,
     WorldMap,
     Last
 }

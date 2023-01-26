@@ -5,12 +5,13 @@ import { a } from './globals';
 import { CNode } from './node'
 import { vec2, vec3, vec4, mat4 } from 'gl-matrix'
 import { initIcosa } from './icosa'
+import { CPicker } from './picker';
 import { initWorldMap } from './worldmap'
 import { glShaders } from './shaders';
 import { createRandomTexture, loadTexture } from './util';
 
 
-const NODE_TRANSFORM_SIZE: number = 24;
+const NODE_TRANSFORM_SIZE: number = 28;
 
 
 export class CWorld {
@@ -19,6 +20,7 @@ export class CWorld {
     public  gl: WebGL2RenderingContext
     private noiseTexture: WebGLTexture
     private worldMapTexture: WebGLTexture
+    private picker: CPicker
 
     public topTexture: WebGLTexture
     public inDrag: boolean
@@ -33,14 +35,19 @@ export class CWorld {
     private icosaGeometry: WebGLBuffer
     private worldMapGeometry: WebGLBuffer
     private transformBuffer: WebGLBuffer
+    private pickerBuffer: WebGLBuffer
     private transformData: Float32Array
     private icosaVao: WebGLVertexArrayObject
+    private pickerVao: WebGLVertexArrayObject
     private worldMapVao: WebGLVertexArrayObject
     public icosaVPLoc: WebGLUniformLocation
     public worldMapVPLoc: WebGLUniformLocation
     public paramsLoc: WebGLUniformLocation
     public noiseTextureLoc: WebGLUniformLocation
     public worldMapTextureLoc: WebGLUniformLocation
+    public pickerVPLoc: WebGLUniformLocation
+    public pickerParamsLoc: WebGLUniformLocation
+    public pickerNoiseTextureLoc: WebGLUniformLocation
     private startTime: number
     private params: vec4
 
@@ -53,6 +60,7 @@ export class CWorld {
         this.nodes = new Array()
         this.startTime = Date.now()
         this.params = vec4.create()
+        this.picker = new CPicker()
     }
 
 
@@ -113,6 +121,19 @@ export class CWorld {
 
     }
 
+    public handleClick(x: number, y: number) {
+        console.log(`world: handleClick: ${x}, ${y}`)
+		let screenCoords : vec2 = vec2.fromValues(x/a.canvas.width, 1 - y/a.canvas.height )
+		this.picker.pickNodePrep(screenCoords[0], screenCoords[1])
+        this.renderPicker();
+        let id = this.picker.pickNodePost();
+        console.log(`  got id ${id}`)
+        if (id >= 0) {
+            let node = this.nodes[id];
+            console.log('node: ', node.inode);
+        }
+    }
+
     private initTransformData() {
         let gl = this.gl
         this.transformData = new Float32Array(this.istate.agraph_length * NODE_TRANSFORM_SIZE);
@@ -124,6 +145,8 @@ export class CWorld {
             n += 4
             this.transformData.set(node.metadata, n);
             n += 4
+            this.transformData.set(node.idColor, n);
+            n += 4
             this.transformData.set(node.matWorld, n);
             n += 16
         }
@@ -131,14 +154,17 @@ export class CWorld {
         this.transformBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
+        this.pickerBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
     }
 
     private updateTransformData() {
         let gl = this.gl
-        let n: number = 8;
+        let n: number = 12;
         for (let node of this.nodes) {
             this.transformData.set(node.matWorld, n);
-            n += 24
+            n += 28
         }
         gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
@@ -146,18 +172,18 @@ export class CWorld {
 
     public async initialize() {
         console.log('world::initialize, num nodes: ' + this.istate.agraph_length);
-        let designation = 0
+        let id = 0
         for (let inode of this.istate.nodes) {
-            let node = new CNode(inode, designation)
+            let node = new CNode(inode, id)
             this.nodes.push(node);
-            designation++
+            id++
         }
+        console.log('last id: ', id)
 
         let gl = this.gl;
 
 
         // Textures
-        //
         this.noiseTexture = createRandomTexture(gl, 1024, 1);
         let width = gl.getParameter(gl.MAX_TEXTURE_SIZE)
         console.log('max width is ', width);
@@ -167,22 +193,22 @@ export class CWorld {
             this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_4k.jpeg");
         }
 
-        // Icosa shader locations
+        // Icosa 
         //
         let positionLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_position');
-        const colorLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_color');
-        const metadataLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_metadata');
-        const modelLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_model');
-        const normalLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_normal');
+        let colorLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_color');
+        let metadataLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_metadata');
+        let modelLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_model');
+        let normalLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_normal');
         this.icosaVPLoc = gl.getUniformLocation(glShaders[EShader.Icosa], 'u_viewProjection');
         this.paramsLoc = gl.getUniformLocation(glShaders[EShader.Icosa], 'u_params');
         this.noiseTextureLoc = gl.getUniformLocation(glShaders[EShader.Icosa], 'u_noiseTexture');
 
-        console.log('positionLoc ', positionLoc)
-        console.log('modelLoc ', modelLoc)
-        console.log('colorLoc ', colorLoc)
-        console.log('metadataLoc ', metadataLoc)
-        console.log('normalLoc ', normalLoc)
+        console.log('icosa positionLoc ', positionLoc)
+        console.log('icosa modelLoc ', modelLoc)
+        console.log('icosa colorLoc ', colorLoc)
+        console.log('icosa metadataLoc ', metadataLoc)
+        console.log('icosa normalLoc ', normalLoc)
 
         this.icosaGeometry = initIcosa(gl)
         this.icosaVao = gl.createVertexArray();
@@ -193,13 +219,13 @@ export class CWorld {
         this.initTransformData();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
         gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 32);
+        gl.vertexAttribPointer(0, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
         gl.enableVertexAttribArray(1);
-        gl.vertexAttribPointer(1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
+        gl.vertexAttribPointer(1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
         gl.enableVertexAttribArray(2);
-        gl.vertexAttribPointer(2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
+        gl.vertexAttribPointer(2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
         gl.enableVertexAttribArray(3);
-        gl.vertexAttribPointer(3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
+        gl.vertexAttribPointer(3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
         gl.enableVertexAttribArray(5);
         gl.vertexAttribPointer(5, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 0);
         gl.enableVertexAttribArray(7);
@@ -221,6 +247,53 @@ export class CWorld {
         // normals
         gl.enableVertexAttribArray(6);
         gl.vertexAttribPointer(6, 3, gl.FLOAT, false, 24, 12);
+
+        // Picker
+        //
+        positionLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_position');
+        let pickerColorLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_pickerColor');
+        metadataLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_metadata');
+        modelLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_model');
+        this.pickerVPLoc = gl.getUniformLocation(glShaders[EShader.Picker], 'u_viewProjection');
+        this.pickerParamsLoc = gl.getUniformLocation(glShaders[EShader.Picker], 'u_params');
+        this.pickerNoiseTextureLoc = gl.getUniformLocation(glShaders[EShader.Picker], 'u_noiseTexture');
+
+        console.log('picker positionLoc ', positionLoc)
+        console.log('picker pickerColorLoc ', pickerColorLoc)
+        console.log('picker metadataLoc ', metadataLoc)
+        console.log('picker modelLoc ', modelLoc)
+        this.pickerVao = gl.createVertexArray();
+        gl.bindVertexArray(this.pickerVao);
+
+
+        // ATTRIBS 0/1/2/3/5/6 are in the transform data1
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerBuffer);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
+        gl.enableVertexAttribArray(1);
+        gl.vertexAttribPointer(1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
+        gl.enableVertexAttribArray(2);
+        gl.vertexAttribPointer(2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
+        gl.enableVertexAttribArray(3);
+        gl.vertexAttribPointer(3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
+        gl.enableVertexAttribArray(6);
+        gl.vertexAttribPointer(6, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 32);
+        gl.enableVertexAttribArray(5);
+        gl.vertexAttribPointer(5, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
+
+        gl.vertexAttribDivisor(0,1);
+        gl.vertexAttribDivisor(1,1);
+        gl.vertexAttribDivisor(2,1);
+        gl.vertexAttribDivisor(3,1);
+        gl.vertexAttribDivisor(5,1);
+        gl.vertexAttribDivisor(6,1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.icosaGeometry);
+
+        // ATTRIBS 4 & 6 are in the vertex data (same for each instance)
+        // positions
+        gl.enableVertexAttribArray(4);
+        gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 24, 0);
 
         // World Map
         //
@@ -269,6 +342,18 @@ export class CWorld {
         gl.uniform1i(this.worldMapTextureLoc, 0);
         gl.bindVertexArray(this.worldMapVao);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+
+    public renderPicker() {
+        let gl = this.gl
+        gl.useProgram(glShaders[EShader.Picker]);
+        gl.uniformMatrix4fv(this.pickerVPLoc, false, a.matViewProjection);
+        gl.uniform4fv(this.pickerParamsLoc, this.params);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.noiseTexture);
+        gl.uniform1i(this.pickerNoiseTextureLoc, 0);
+        gl.bindVertexArray(this.pickerVao);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.istate.agraph_length);
     }
 
     public release() {

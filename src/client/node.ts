@@ -3,7 +3,7 @@
 import { INode } from './core'
 import { a } from './globals'
 import { mat4, vec3, vec4 } from 'gl-matrix'
-import { randomColor } from './util'
+import { idToColor, randomColor } from './util'
 
 
 const WORLD_WIDTH: number = 3600;
@@ -17,6 +17,7 @@ const YDIVISOR = Math.pow(2, 16);
 export class CNode {
     public inode: INode
     public color: vec4
+    public idColor: vec4
     public metadata: vec4
     public info: vec4
     public position: vec3
@@ -122,10 +123,11 @@ export class CNode {
         //     gl.drawElements(gl.TRIANGLES, piece.sideIndexLength, gl.UNSIGNED_SHORT, 0);
         // }
     }
-    public constructor(inode: INode, designation: number) {
+    public constructor(inode: INode, id: number) {
         this.inode = inode;
         this.metadata = vec4.create()
         this.color = randomColor()
+        this.idColor = idToColor(id)
         this.positionRadius = vec4.create()
 
         this.position = vec3.create()
@@ -139,11 +141,11 @@ export class CNode {
         //   Aggregate connections
         //   Betweenness
         //   Closeness
-        //   Designation (id, as integer)
+        //   iD (id, as integer)
         this.metadata[0] = inode.num_connections;
         this.metadata[1] = inode.betweenness;
         this.metadata[2] = inode.closeness;
-        this.metadata[3] = designation;
+        this.metadata[3] = id;
 
         // normalize and perform Wager VI projection on longitude/x
         // https://en.wikipedia.org/wiki/Wagner_VI_projection

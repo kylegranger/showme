@@ -43,6 +43,9 @@ export class CShowme {
     }
 
     public handleClick(x: number, y: number) {
+        // console.log(`showme: handleClick: ${x}, ${y}`)
+        a.world.handleClick(x, y)
+
     }
 
     private updateActions(delta: number) {

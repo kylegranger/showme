@@ -142,6 +142,34 @@ const glslIcosa : IShader = {
   }
 
 
+  const glslPicker : IShader = {
+    vertex: `#version 300 es
+  uniform mat4 u_viewProjection;
+  uniform sampler2D u_noiseTexture;
+  uniform vec4 u_params;
+  in vec3 a_position;
+  in vec4 a_pickerColor;
+  in vec4 a_metadata;
+  in mat4 a_model;
+  out vec4 vColor;
+  void main(){
+    float secs = u_params.x * a_metadata.x * 0.000008;
+    vec4 brownian = texture(u_noiseTexture, vec2(secs,0.5)) * 2.4;
+    vColor = a_pickerColor;
+    gl_Position = u_viewProjection * a_model * vec4(a_position + brownian.xyz, 1.0);
+  }
+  `,
+    fragment: `#version 300 es
+  precision highp float;
+  in vec4 vColor;
+  out vec4 fragColor;
+  void main() {
+    fragColor = vColor;
+  }
+  `
+  }
+
+
   const glslWorldMap : IShader = {
     vertex: `#version 300 es
   uniform mat4 u_viewProjection;
@@ -177,5 +205,6 @@ const glslIcosa : IShader = {
 
 let glslSrc : IShader [] = [
     glslIcosa,
+    glslPicker,
     glslWorldMap
 ]
