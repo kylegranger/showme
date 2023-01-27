@@ -2,6 +2,8 @@
 import { EKeyId, IKeyAction } from './core'
 import { a } from './globals';
 import { PCamera } from './camera';
+import { zoomLogToScale } from './util'
+import { vec3 } from 'gl-matrix'
 
 export class CShowme {
     public  gl: WebGL2RenderingContext
@@ -166,7 +168,17 @@ export class CShowme {
         if (this.velZoom) {
             let dz = this.velZoom * delta / 1000
             this.zoomLogarithm += dz
+            if (this.zoomLogarithm > 8.14786) {
+                this.zoomLogarithm = 8.14786;
+                this.velZoom = 0;
+            }
+            if (this.zoomLogarithm < 4.158883) {
+                this.zoomLogarithm = 4.158883;
+                this.velZoom = 0;
+            }
+            a.nodeScale = zoomLogToScale(this.zoomLogarithm);
             a.cameraZ = Math.exp(this.zoomLogarithm)
+            // console.log(`Z ${a.cameraZ}, log ${this.zoomLogarithm}`)
             a.pcamera.update()
         }
     }
@@ -202,6 +214,7 @@ export class CShowme {
         a.cameraZ = 1200
         a.pcamera = new PCamera(a.cameraX, a.cameraY, a.cameraZ)
         this.zoomLogarithm = Math.log(a.cameraZ)
+        a.nodeScale = zoomLogToScale(this.zoomLogarithm);
         a.pcamera.update();
         await this.initializeGl(a.gl)
     }

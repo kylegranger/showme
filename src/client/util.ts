@@ -19,9 +19,17 @@ export function channelToColor(channel: number) : vec4 {
 }
 
 export function randomColor() : vec4 {
+    let channel = Math.floor(Math.random() * 3)
+    let red = Math.random()
     let blue = Math.random()
     let green = Math.random()
-    let red = Math.random()
+    // if (channel == 0) {
+    //     red = 1
+    // } else if (channel == 1) {
+    //     green = 1
+    // } else {
+    //     blue = 1
+    // }
     let result = vec4.fromValues(red, green, blue, 1)
     return result
 }
@@ -122,4 +130,18 @@ export function createRandomTexture(gl: WebGL2RenderingContext, width: number, h
 
 function isPowerOf2(value) {
     return (value & (value - 1)) == 0;
+}
+
+const maxLog = 7.6
+const minLog = 4.1
+const deltaLog = maxLog - minLog
+export function zoomLogToScale(zoomLogarithm: number) : vec3 {
+    let scale = 1;
+    if (zoomLogarithm > maxLog) {
+        scale = 4
+    } else if (zoomLogarithm > minLog ){
+        scale = 1 + (zoomLogarithm - minLog) * 3 / deltaLog;
+    }
+    // console.log('scale now ', scale)
+    return vec3.fromValues(scale, scale, scale);
 }

@@ -217,6 +217,8 @@ export class CWorld {
         this.noiseTexture = createRandomTexture(gl, 1024, 1);
         let width = gl.getParameter(gl.MAX_TEXTURE_SIZE)
         console.log('max width is ', width);
+        let precision = gl.getParameter(gl.DEPTH_BITS) 
+        console.log('precision is ', precision);
         if (width >= 8192) {
             this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_8k.jpeg");
         } else {
@@ -337,7 +339,19 @@ export class CWorld {
         this.params[0] = elapsed / 1000.0;
         let gl = this.gl
 
+        // World Map
+        gl.depthMask(false);
+        gl.useProgram(glShaders[EShader.WorldMap]);
+        gl.uniformMatrix4fv(this.worldMapVPLoc, false, a.matViewProjection);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.worldMapTexture);
+        gl.uniform1i(this.worldMapTextureLoc, 0);
+        gl.bindVertexArray(this.worldMapVao);
+        gl.drawArrays(gl.TRIANGLES, 0, 108);
+        
+
         // Nodes
+        gl.depthMask(true);
         gl.useProgram(glShaders[EShader.Icosa]);
         gl.uniformMatrix4fv(this.icosaVPLoc, false, a.matViewProjection);
         gl.uniform4fv(this.paramsLoc, this.params);
@@ -347,14 +361,6 @@ export class CWorld {
         gl.bindVertexArray(this.icosaVao);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.istate.agraph_length);
 
-        // World Map
-        gl.useProgram(glShaders[EShader.WorldMap]);
-        gl.uniformMatrix4fv(this.worldMapVPLoc, false, a.matViewProjection);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.worldMapTexture);
-        gl.uniform1i(this.worldMapTextureLoc, 0);
-        gl.bindVertexArray(this.worldMapVao);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
 
     public renderPicker() {

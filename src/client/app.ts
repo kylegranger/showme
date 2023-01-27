@@ -1,7 +1,7 @@
 import { CShowme } from './showme'
 import { EKeyId } from './core'
 import { a } from './globals'
-import { mat4 } from 'gl-matrix'
+import { mat4, vec3 } from 'gl-matrix'
 import { PCamera } from "camera"
 import { initShadersGl } from './shaders'
 import { IState } from './core'
@@ -70,6 +70,7 @@ async init(state: IState) {
     a.matView = mat4.create()
     a.matProjection = mat4.create()
     a.matViewProjection = mat4.create()
+    a.nodeScale = vec3.fromValues(1, 1, 1)
     this.initializeWebGl(a.gl)
     a.world = new CWorld(state, a.gl);
     a.world.initialize();

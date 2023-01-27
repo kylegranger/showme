@@ -19,11 +19,10 @@ export class CNode {
     public position: vec3
     public center: vec3
     public rotation: vec3
-    public positionRadius: vec4
     public matWorld: mat4
     public matMV: mat4
     public matMVP: mat4
-    public radius: number
+    public scale: number
 
 
     public release() {
@@ -53,11 +52,6 @@ export class CNode {
         return this.rotation[0]
     }
 
-    public updatePositionRadius(isSub: boolean) {
-        this.positionRadius = vec4.fromValues(this.position[0], this.position[1], this.radius, isSub ? 1 : 0)
-
-    }
-
     public updateOverlayUniformsGl(proj: mat4, view: mat4) {
         this.updateMatrix()
         mat4.multiply(this.matMV, view, this.matWorld)
@@ -66,10 +60,16 @@ export class CNode {
 
     public constructor(inode: INode, id: number) {
         this.inode = inode;
+        let isLocalHost = inode.ip == "127.0.0.1"
+
         this.metadata = vec4.create()
-        this.color = randomColor()
+        this.color = isLocalHost ? vec4.fromValues(1.0, 1.0, 1.0, 1) : randomColor()
         this.idColor = idToColor(id)
-        this.positionRadius = vec4.create()
+        this.scale = isLocalHost ? 4 : 1
+        if (isLocalHost) {
+            this.inode.geolocation.city = 'n/a'
+            this.inode.geolocation.country = 'localhost'
+        }
 
         this.position = vec3.create()
         this.center = vec3.create()
@@ -93,7 +93,7 @@ export class CNode {
         // shader does inverse
         let x: number = (this.inode.geolocation.longitude + 180) / 360;
         let y: number = (this.inode.geolocation.latitude + 90) / 180;
-        let z: number = Math.random();
+        let z: number = isLocalHost ? 1 : Math.random();
 
         let longitude = x - 0.5;
         let latitude = y - 0.5;
@@ -117,6 +117,8 @@ export class CNode {
         let ry = mat4.create()
         let t = mat4.create()
         mat4.identity(this.matWorld)
+        mat4.scale(this.matWorld, this.matWorld, a.nodeScale)
+        mat4.scale(this.matWorld, this.matWorld, vec3.fromValues(this.scale,this.scale, this.scale))
         mat4.translate(this.matWorld, this.matWorld, vec3.fromValues(-this.center[0], -this.center[1], 0))
         mat4.fromYRotation(ry, this.rotation[1])
         mat4.multiply(this.matWorld, ry, this.matWorld)

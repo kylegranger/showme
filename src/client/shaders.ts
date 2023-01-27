@@ -57,12 +57,12 @@ const glslIcosa : IShader = {
     vec4 brownian = texture(u_noiseTexture, vec2(secs,0.5)) * 1.2;
     vec3 lightDirection = normalize(vec3(0.2, 0.2, -1.0));
     mat4 normalMatrix = inverse(a_model);
-    normalMatrix = transpose(normalMatrix);
-    vec3 transformedNormal = (normalMatrix * vec4(a_normal, 1.0)).xyz;
+    mat4 transposed = transpose(normalMatrix);
+    vec3 transformedNormal = normalize((transposed * vec4(a_normal, 1.0)).xyz);
     float light = dot(transformedNormal, lightDirection);
     light = 0.3 + light * 0.7;
     vColor = vec4(a_color.r * light, a_color.g * light, a_color.b * light, 1.0);
-    gl_Position = u_viewProjection * a_model * vec4(a_position + brownian.xyz, 1.0);
+    gl_Position = u_viewProjection * a_model * vec4(a_position.xy + brownian.xy, a_position.z, 1.0);
   }
   `,
     fragment: `#version 300 es
@@ -90,7 +90,7 @@ const glslIcosa : IShader = {
     float secs = u_params.x * a_metadata.x * 0.000005;
     vec4 brownian = texture(u_noiseTexture, vec2(secs,0.5)) * 1.2;
     vColor = a_pickerColor;
-    gl_Position = u_viewProjection * a_model * vec4(a_position + brownian.xyz, 1.0);
+    gl_Position = u_viewProjection * a_model * vec4(a_position.xy + brownian.xy, a_position.z, 1.0);
   }
   `,
     fragment: `#version 300 es
