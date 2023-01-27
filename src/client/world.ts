@@ -290,20 +290,20 @@ export class CWorld {
         gl.bindVertexArray(this.pickerVao);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerBuffer);
+        gl.enableVertexAttribArray(metadataLoc);
+        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
+        gl.enableVertexAttribArray(pickerColorLoc);
+        gl.vertexAttribPointer(pickerColorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 32);
         gl.enableVertexAttribArray(modelLoc);
-        gl.vertexAttribPointer(modelLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
+        gl.vertexAttribPointer(modelLoc+0, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
         gl.enableVertexAttribArray(modelLoc+1);
         gl.vertexAttribPointer(modelLoc+1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
         gl.enableVertexAttribArray(modelLoc+2);
         gl.vertexAttribPointer(modelLoc+2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
         gl.enableVertexAttribArray(modelLoc+3);
         gl.vertexAttribPointer(modelLoc+3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
-        gl.enableVertexAttribArray(pickerColorLoc);
-        gl.vertexAttribPointer(pickerColorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 32);
-        gl.enableVertexAttribArray(metadataLoc);
-        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
 
-        gl.vertexAttribDivisor(modelLoc,1);
+        gl.vertexAttribDivisor(modelLoc+0,1);
         gl.vertexAttribDivisor(modelLoc+1,1);
         gl.vertexAttribDivisor(modelLoc+2,1);
         gl.vertexAttribDivisor(modelLoc+3,1);
@@ -348,10 +348,9 @@ export class CWorld {
         gl.uniform1i(this.worldMapTextureLoc, 0);
         gl.bindVertexArray(this.worldMapVao);
         gl.drawArrays(gl.TRIANGLES, 0, 108);
-        
+        gl.depthMask(true);
 
         // Nodes
-        gl.depthMask(true);
         gl.useProgram(glShaders[EShader.Icosa]);
         gl.uniformMatrix4fv(this.icosaVPLoc, false, a.matViewProjection);
         gl.uniform4fv(this.paramsLoc, this.params);
@@ -372,6 +371,8 @@ export class CWorld {
         gl.bindTexture(gl.TEXTURE_2D, this.noiseTexture);
         gl.uniform1i(this.pickerNoiseTextureLoc, 0);
         gl.bindVertexArray(this.pickerVao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.istate.agraph_length);
     }
 }

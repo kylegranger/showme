@@ -203,7 +203,6 @@ export class CShowme {
         let delta = time - this.lastUpdateTime
         this.lastUpdateTime = time
         this.updateActions(delta)
-        // this.clampCamera()
         a.pcamera.update()
         a.world.update()
     }
@@ -224,14 +223,10 @@ export class CShowme {
     }
 
     public renderGl() {
-
-
         this.update()
-
         if (a.world) {
             a.world.renderGl()
         }
-
     }
 
     public release() {

@@ -58,6 +58,25 @@ export class CNode {
         mat4.multiply(this.matMVP, proj, this.matMV)
     }
 
+    public initializePosition(isLocalHost: boolean) {
+        // normalize and perform Wager VI projection on longitude/x
+        // https://en.wikipedia.org/wiki/Wagner_VI_projection
+        // shader does inverse
+        let x: number = (this.inode.geolocation.longitude + 180) / 360;
+        let y: number = (this.inode.geolocation.latitude + 90) / 180;
+        let z: number = isLocalHost ? 1 : Math.random();
+
+        let longitude = x - 0.5;
+        let latitude = y - 0.5;
+        let transformedX = 0.5 + longitude * Math.sqrt(1 - 3*latitude*latitude);
+
+        this.setPosition(
+            transformedX * WORLD_WIDTH - WORLD_WIDTH/2,
+            y * WORLD_HEIGHT - WORLD_HEIGHT/2,
+            z * WORLD_DEPTH * 0.8 + WORLD_DEPTH * 0.2,
+        )
+    }
+
     public constructor(inode: INode, id: number) {
         this.inode = inode;
         let isLocalHost = inode.ip == "127.0.0.1"
@@ -88,22 +107,7 @@ export class CNode {
         this.metadata[2] = inode.closeness;
         this.metadata[3] = id;
 
-        // normalize and perform Wager VI projection on longitude/x
-        // https://en.wikipedia.org/wiki/Wagner_VI_projection
-        // shader does inverse
-        let x: number = (this.inode.geolocation.longitude + 180) / 360;
-        let y: number = (this.inode.geolocation.latitude + 90) / 180;
-        let z: number = isLocalHost ? 1 : Math.random();
-
-        let longitude = x - 0.5;
-        let latitude = y - 0.5;
-        let transformedX = 0.5 + longitude * Math.sqrt(1 - 3*latitude*latitude);
-
-        this.setPosition(
-            transformedX * WORLD_WIDTH - WORLD_WIDTH/2,
-            y * WORLD_HEIGHT - WORLD_HEIGHT/2,
-            z * WORLD_DEPTH * 0.8 + WORLD_DEPTH * 0.2,
-        )
+        this.initializePosition(isLocalHost);
     }
 
     public setPosition(x: number, y: number, z: number) {
