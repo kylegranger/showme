@@ -136,9 +136,36 @@ const glslIcosa : IShader = {
   `
   }
 
+  const glslConnection : IShader = {
+    vertex: `#version 300 es
+  uniform mat4 u_viewProjection;
+  in vec3 a_position;
+  in vec4 a_color;
+  in vec3 a_vertex1;
+  in vec3 a_vertex2;
+  out vec4 vColor;
+  void main(){
+    vColor = a_color;
+    vec3 vertex = a_vertex1 + a_vertex2 * a_position.x;
+    gl_Position = u_viewProjection * vec4(vertex.xyz, 1.0);
+  }
+  `,
+    fragment: `#version 300 es
+  precision highp float;
+  in vec4 vColor;
+  out vec4 fragColor;
+  void main() {
+    fragColor = vColor;
+  }
+  `
+  }
+
+
+
 
 let glslSrc : IShader [] = [
     glslIcosa,
     glslPicker,
-    glslWorldMap
+    glslWorldMap,
+    glslConnection
 ]

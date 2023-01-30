@@ -86,6 +86,7 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
         gl.frontFace(gl.CW)
         gl.cullFace(gl.BACK)
         gl.enable(gl.CULL_FACE)
+        gl.lineWidth(4.0);
         initShadersGl()
         await this.initShowme()
     }

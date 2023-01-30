@@ -5,6 +5,7 @@ import { a } from './globals';
 import { CNode } from './node'
 import { vec2, vec3, vec4, mat4 } from 'gl-matrix'
 import { initIcosa } from './icosa'
+import { initLineGeometry } from './connection'
 import { CPicker } from './picker';
 import { initWorldMap } from './worldmap'
 import { glShaders } from './shaders';
@@ -12,6 +13,7 @@ import { createRandomTexture, loadTexture } from './util';
 
 
 const NODE_TRANSFORM_SIZE: number = 28;
+const CONNECTION_TRANSFORM_SIZE: number = 12;
 
 
 export class CWorld {
@@ -34,14 +36,19 @@ export class CWorld {
     private lastTime: number
     private icosaGeometry: WebGLBuffer
     private worldMapGeometry: WebGLBuffer
+    private lineGeometry: WebGLBuffer
     private transformBuffer: WebGLBuffer
     private pickerBuffer: WebGLBuffer
+    private connectionBuffer: WebGLBuffer
     private transformData: Float32Array
+    private connectionData: Float32Array
     private icosaVao: WebGLVertexArrayObject
     private pickerVao: WebGLVertexArrayObject
     private worldMapVao: WebGLVertexArrayObject
+    private connectionVao: WebGLVertexArrayObject
     public icosaVPLoc: WebGLUniformLocation
     public worldMapVPLoc: WebGLUniformLocation
+    public connectionVPLoc: WebGLUniformLocation
     public paramsLoc: WebGLUniformLocation
     public noiseTextureLoc: WebGLUniformLocation
     public worldMapTextureLoc: WebGLUniformLocation
@@ -52,6 +59,9 @@ export class CWorld {
     private params: vec4
     private selectedId: number
     private white: vec4;
+    private maxConnections: number
+    private drawConnections: boolean
+    private numConnectionsToDraw: number
 
     public constructor(istate: IState, gl: WebGL2RenderingContext) {
         this.istate = istate
@@ -65,6 +75,9 @@ export class CWorld {
         this.picker = new CPicker()
         this.selectedId = -1
         this.white = vec4.fromValues(1, 1, 1, 1)
+        this.maxConnections = 0;
+        this.drawConnections = false
+        this.numConnectionsToDraw = 0
     }
 
 
@@ -138,7 +151,7 @@ export class CWorld {
             a.ipNode.nodeValue = node.inode.ip
             a.betweennessNode.nodeValue = node.inode.betweenness.toFixed(6)
             a.closenessNode.nodeValue = node.inode.closeness.toFixed(6)
-            a.connectionsNode.nodeValue = node.inode.num_connections.toString()
+            a.connectionsNode.nodeValue = node.numConnections.toString()
             a.latitudeNode.nodeValue = node.inode.geolocation.latitude.toFixed(4)
             a.longitudeNode.nodeValue = node.inode.geolocation.longitude.toFixed(4)
             a.cityNode.nodeValue = node.inode.geolocation.city
@@ -158,7 +171,13 @@ export class CWorld {
             if (id != -1) {
                 // set new selection to white
                 console.log('set white id ', id)
+                let node: CNode = this.nodes[id];
                 this.transformData.set(this.white, id*NODE_TRANSFORM_SIZE);
+                this.setConnectionData(node)
+                this.numConnectionsToDraw = node.numConnections;
+                this.drawConnections = true
+            } else {
+                this.drawConnections = false;
             }
             this.selectedId = id
         }
@@ -189,6 +208,47 @@ export class CWorld {
         gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
     }
 
+    private initConnectionData(maxConnections: number) {
+        let gl = this.gl
+        this.connectionData = new Float32Array(maxConnections * CONNECTION_TRANSFORM_SIZE);
+        let n: number = 0;
+        console.log('numConnections : ', maxConnections)
+        console.log('nodes length : ', this.nodes.length)
+        // for (let node of this.nodes) {
+        //     this.transformData.set(node.color, n);
+        //     n += 4
+        //     this.transformData.set(node.matWorld, n);
+        //     n += 16
+        // }
+        console.log('initConnectionData: len ', this.connectionData.length)
+        this.connectionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.connectionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.connectionData, gl.STATIC_DRAW);
+    }
+
+    private setConnectionData(node: CNode) {
+        console.log('setConnectionData, node ', node.id)
+        let gl = this.gl
+
+        // this.connectionData = new Float32Array(numConnections * CONNECTION_TRANSFORM_SIZE);
+        let n: number = 0;
+        console.log('num_connections : ', node.numConnections)
+        for (let index of node.inode.connections) {
+            let conn: CNode = this.nodes[index]
+            this.connectionData.set(conn.color, n);
+            n += 4
+            this.connectionData.set(node.position, n);
+            n += 4
+            let delta: vec3 = vec3.create()
+            vec3.sub(delta, conn.position, node.position)
+            this.connectionData.set(delta, n);
+            n += 4
+        }
+        console.log('setConnectionData: len ', n)
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.connectionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.connectionData, gl.STATIC_DRAW);
+    }
+
     private updateTransformData() {
         let gl = this.gl
         let n: number = 12;
@@ -203,7 +263,11 @@ export class CWorld {
     public async initialize() {
         console.log('world::initialize, num nodes: ' + this.istate.agraph_length);
         let id = 0
+        this.maxConnections = 0;
         for (let inode of this.istate.nodes) {
+            if (inode.connections.length > this.maxConnections) {
+                this.maxConnections = inode.connections.length
+            }
             let node = new CNode(inode, id)
             this.nodes.push(node);
             id++
@@ -331,6 +395,40 @@ export class CWorld {
         // uv coords
         gl.enableVertexAttribArray(1);
         gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
+
+
+        // Connections -------------------------------------------
+        positionLoc = gl.getAttribLocation(glShaders[EShader.Connection], 'a_position');
+        colorLoc = gl.getAttribLocation(glShaders[EShader.Connection], 'a_color');
+        let vertex1Loc = gl.getAttribLocation(glShaders[EShader.Connection], 'a_vertex1');
+        let vertex2Loc = gl.getAttribLocation(glShaders[EShader.Connection], 'a_vertex2');
+        this.connectionVPLoc = gl.getUniformLocation(glShaders[EShader.Connection], 'u_viewProjection');
+
+        console.log('connection positionLoc ', positionLoc)
+        console.log('connection colorLoc ', colorLoc)
+        console.log('connection vertex1Loc ', vertex1Loc)
+        console.log('connection vertex2Loc ', vertex2Loc)
+
+        this.lineGeometry = initLineGeometry(gl)
+        this.connectionVao = gl.createVertexArray();
+        gl.bindVertexArray(this.connectionVao);
+
+        this.initConnectionData(this.maxConnections);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.connectionBuffer);
+        gl.enableVertexAttribArray(colorLoc);
+        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, CONNECTION_TRANSFORM_SIZE*4, 0);
+        gl.enableVertexAttribArray(vertex1Loc);
+        gl.vertexAttribPointer(vertex1Loc, 4, gl.FLOAT, false, CONNECTION_TRANSFORM_SIZE*4, 16);
+        gl.enableVertexAttribArray(vertex2Loc);
+        gl.vertexAttribPointer(vertex2Loc, 4, gl.FLOAT, false, CONNECTION_TRANSFORM_SIZE*4, 32);
+
+        gl.vertexAttribDivisor(colorLoc,1);
+        gl.vertexAttribDivisor(vertex1Loc,1);
+        gl.vertexAttribDivisor(vertex2Loc,1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.lineGeometry);
+        gl.enableVertexAttribArray(positionLoc);
+        gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 12, 0);
     }
 
 
@@ -359,6 +457,13 @@ export class CWorld {
         gl.uniform1i(this.noiseTextureLoc, 0);
         gl.bindVertexArray(this.icosaVao);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.istate.agraph_length);
+        if (this.drawConnections) {
+            console.log('draw connections: ', this.numConnectionsToDraw)
+            gl.useProgram(glShaders[EShader.Connection]);
+            gl.uniformMatrix4fv(this.connectionVPLoc, false, a.matViewProjection);
+            gl.bindVertexArray(this.connectionVao);
+            gl.drawArraysInstanced(gl.LINES, 0, 2, this.numConnectionsToDraw);
+        }
 
     }
 

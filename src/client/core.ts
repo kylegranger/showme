@@ -4,6 +4,7 @@ export enum EShader {
     Icosa = 0,
     Picker,
     WorldMap,
+    Connection,
     Last
 }
 
@@ -36,7 +37,7 @@ export interface INode {
     ip: string
     betweenness: number
     closeness: number
-    num_connections: number
+    connections: number []
     geolocation: {
         ip: string
         country: string

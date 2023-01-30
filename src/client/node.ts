@@ -14,6 +14,7 @@ export class CNode {
     public inode: INode
     public color: vec4
     public idColor: vec4
+    public id: number
     public metadata: vec4
     public info: vec4
     public position: vec3
@@ -23,6 +24,7 @@ export class CNode {
     public matMV: mat4
     public matMVP: mat4
     public scale: number
+    public numConnections: number
 
 
     public release() {
@@ -79,6 +81,8 @@ export class CNode {
 
     public constructor(inode: INode, id: number) {
         this.inode = inode;
+        this.id = id;
+        this.numConnections = this.inode.connections.length
         let isLocalHost = inode.ip == "127.0.0.1"
 
         this.metadata = vec4.create()
@@ -102,7 +106,7 @@ export class CNode {
         //   Betweenness
         //   Closeness
         //   iD (id, as integer)
-        this.metadata[0] = inode.num_connections;
+        this.metadata[0] = this.numConnections;
         this.metadata[1] = inode.betweenness;
         this.metadata[2] = inode.closeness;
         this.metadata[3] = id;
