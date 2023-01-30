@@ -24,6 +24,7 @@ export enum EKeyId {
     ArrowDown = 'down',
     ZoomIn = 'in',
     ZoomOut = 'out',
+    ToggleConnection = 'conn'
 }
 
 export interface IKeyAction {

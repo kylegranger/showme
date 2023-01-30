@@ -33,7 +33,6 @@ export class CWorld {
     public inTouchX: number
     public inTouchY: number
     public inTouchTime: number
-    private lastTime: number
     private icosaGeometry: WebGLBuffer
     private worldMapGeometry: WebGLBuffer
     private lineGeometry: WebGLBuffer
@@ -62,13 +61,13 @@ export class CWorld {
     private maxConnections: number
     private drawConnections: boolean
     private numConnectionsToDraw: number
+    public connectionMode: boolean
 
     public constructor(istate: IState, gl: WebGL2RenderingContext) {
         this.istate = istate
         this.gl = gl
         this.inDrag = false
         this.mouseIsOut = true
-        this.lastTime = 0
         this.nodes = new Array()
         this.startTime = Date.now()
         this.params = vec4.create()
@@ -78,48 +77,8 @@ export class CWorld {
         this.maxConnections = 0;
         this.drawConnections = false
         this.numConnectionsToDraw = 0
+        this.connectionMode = false;
     }
-
-
-
-    // private createDrawList() {
-    //     this.setTableBounds();
-    //     this.drawlist = new Array()
-    //     for ( let group of this.groups ) {
-    //         if (group.position[0] + group.radius < this.minX) {
-    //             continue
-    //         }
-    //         if (group.position[0] - group.radius > this.maxX) {
-    //             continue
-    //         }
-    //         if (group.position[1] + group.radius < this.minY) {
-    //             continue
-    //         }
-    //         if (group.position[1] - group.radius > this.maxY) {
-    //             continue
-    //         }
-    //         this.drawlist.push(group)
-    //     }
-    //     if (this.listsize != this.drawlist.length) {
-    //         this.listsize = this.drawlist.length
-    //         console.log('this.listsize = ' + this.listsize)
-    //     }
-    // }
-
-    // private clampCamera() {
-    //     if (a.cameraX < -a.tabla.width/2) {
-    //         a.cameraX = -a.tabla.width/2
-    //     }
-    //     if (a.cameraX > a.tabla.width/2) {
-    //         a.cameraX = a.tabla.width/2
-    //     }
-    //     if (a.cameraY < -a.tabla.height/2) {
-    //         a.cameraY = -a.tabla.height/2
-    //     }
-    //     if (a.cameraY > a.tabla.height/2) {
-    //         a.cameraY = a.tabla.height/2
-    //     }
-    // }
 
     public update() {
         if (!this.transformData) {
@@ -134,7 +93,7 @@ export class CWorld {
         }
         this.updateTransformData()
         let done = Date.now();
-        //console.log(`now ${now} done ${done} delta ${done-now}`)
+        console.log(`now ${now} done ${done} delta ${done-now}`)
 
     }
 
@@ -156,10 +115,8 @@ export class CWorld {
             a.longitudeNode.nodeValue = node.inode.geolocation.longitude.toFixed(4)
             a.cityNode.nodeValue = node.inode.geolocation.city
             a.countryNode.nodeValue = node.inode.geolocation.country
-            // display
             document.getElementById("overlayRight").style.visibility = "visible";
         } else {
-            // hide 
             document.getElementById("overlayRight").style.visibility = "hidden";
         }
         if (id != this.selectedId) {
@@ -211,16 +168,6 @@ export class CWorld {
     private initConnectionData(maxConnections: number) {
         let gl = this.gl
         this.connectionData = new Float32Array(maxConnections * CONNECTION_TRANSFORM_SIZE);
-        let n: number = 0;
-        console.log('numConnections : ', maxConnections)
-        console.log('nodes length : ', this.nodes.length)
-        // for (let node of this.nodes) {
-        //     this.transformData.set(node.color, n);
-        //     n += 4
-        //     this.transformData.set(node.matWorld, n);
-        //     n += 16
-        // }
-        console.log('initConnectionData: len ', this.connectionData.length)
         this.connectionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.connectionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.connectionData, gl.STATIC_DRAW);
@@ -229,10 +176,8 @@ export class CWorld {
     private setConnectionData(node: CNode) {
         console.log('setConnectionData, node ', node.id)
         let gl = this.gl
-
-        // this.connectionData = new Float32Array(numConnections * CONNECTION_TRANSFORM_SIZE);
         let n: number = 0;
-        console.log('num_connections : ', node.numConnections)
+        console.log('  num_connections : ', node.numConnections)
         for (let index of node.inode.connections) {
             let conn: CNode = this.nodes[index]
             this.connectionData.set(conn.color, n);
@@ -244,7 +189,7 @@ export class CWorld {
             this.connectionData.set(delta, n);
             n += 4
         }
-        console.log('setConnectionData: len ', n)
+        console.log('  setConnectionData: len ', n)
         gl.bindBuffer(gl.ARRAY_BUFFER, this.connectionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.connectionData, gl.STATIC_DRAW);
     }
@@ -260,36 +205,8 @@ export class CWorld {
         gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
     }
 
-    public async initialize() {
-        console.log('world::initialize, num nodes: ' + this.istate.agraph_length);
-        let id = 0
-        this.maxConnections = 0;
-        for (let inode of this.istate.nodes) {
-            if (inode.connections.length > this.maxConnections) {
-                this.maxConnections = inode.connections.length
-            }
-            let node = new CNode(inode, id)
-            this.nodes.push(node);
-            id++
-        }
-        console.log('last id: ', id)
-
+    private initNodeGl() {
         let gl = this.gl;
-
-
-        // Textures
-        this.noiseTexture = createRandomTexture(gl, 1024, 1);
-        let width = gl.getParameter(gl.MAX_TEXTURE_SIZE)
-        console.log('max width is ', width);
-        let precision = gl.getParameter(gl.DEPTH_BITS) 
-        console.log('precision is ', precision);
-        if (width >= 8192) {
-            this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_8k.jpeg");
-        } else {
-            this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_4k.jpeg");
-        }
-
-        // Icosa -------------------------------------------
         let positionLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_position');
         let colorLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_color');
         let metadataLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_metadata');
@@ -337,11 +254,14 @@ export class CWorld {
         gl.enableVertexAttribArray(normalLoc);
         gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 24, 12);
 
-        // Picker ------------------------------------------------------
-        positionLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_position');
+    }
+
+    private initPicketGl() {
+        let gl = this.gl;
+        let positionLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_position');
         let pickerColorLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_pickerColor');
-        metadataLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_metadata');
-        modelLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_model');
+        let metadataLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_metadata');
+        let modelLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_model');
         this.pickerVPLoc = gl.getUniformLocation(glShaders[EShader.Picker], 'u_viewProjection');
         this.pickerParamsLoc = gl.getUniformLocation(glShaders[EShader.Picker], 'u_params');
         this.pickerNoiseTextureLoc = gl.getUniformLocation(glShaders[EShader.Picker], 'u_noiseTexture');
@@ -378,8 +298,12 @@ export class CWorld {
         gl.enableVertexAttribArray(positionLoc);
         gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
 
-        // World Map ------------------------------------------------------------
-        positionLoc = gl.getAttribLocation(glShaders[EShader.WorldMap], 'a_position');
+
+    }
+
+    private initWorldMapGl() {
+        let gl = this.gl;
+        let positionLoc = gl.getAttribLocation(glShaders[EShader.WorldMap], 'a_position');
         const uvLoc = gl.getAttribLocation(glShaders[EShader.WorldMap], 'a_uv');
         this.worldMapVPLoc = gl.getUniformLocation(glShaders[EShader.WorldMap], 'u_viewProjection');
         this.worldMapTextureLoc = gl.getUniformLocation(glShaders[EShader.WorldMap], 'u_worldMapTexture');
@@ -395,11 +319,12 @@ export class CWorld {
         // uv coords
         gl.enableVertexAttribArray(1);
         gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
+    }
 
-
-        // Connections -------------------------------------------
-        positionLoc = gl.getAttribLocation(glShaders[EShader.Connection], 'a_position');
-        colorLoc = gl.getAttribLocation(glShaders[EShader.Connection], 'a_color');
+    initConnectionsGl() {
+        let gl = this.gl;
+        let positionLoc = gl.getAttribLocation(glShaders[EShader.Connection], 'a_position');
+        let colorLoc = gl.getAttribLocation(glShaders[EShader.Connection], 'a_color');
         let vertex1Loc = gl.getAttribLocation(glShaders[EShader.Connection], 'a_vertex1');
         let vertex2Loc = gl.getAttribLocation(glShaders[EShader.Connection], 'a_vertex2');
         this.connectionVPLoc = gl.getUniformLocation(glShaders[EShader.Connection], 'u_viewProjection');
@@ -431,13 +356,42 @@ export class CWorld {
         gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 12, 0);
     }
 
+    public async initialize() {
+        console.log('world::initialize, num nodes: ' + this.istate.agraph_length);
+        let gl = this.gl;
+        let id = 0
+        this.maxConnections = 0;
+        for (let inode of this.istate.nodes) {
+            if (inode.connections.length > this.maxConnections) {
+                this.maxConnections = inode.connections.length
+            }
+            let node = new CNode(inode, id)
+            this.nodes.push(node);
+            id++
+        }
+        console.log('last id: ', id)
 
-    public renderGl() {
-        let elapsed = this.startTime - Date.now()
-        this.params[0] = elapsed / 1000.0;
+
+        // Textures
+        this.noiseTexture = createRandomTexture(gl, 1024, 1);
+        let width = gl.getParameter(gl.MAX_TEXTURE_SIZE)
+        console.log('max width is ', width);
+        let precision = gl.getParameter(gl.DEPTH_BITS) 
+        console.log('precision is ', precision);
+        if (width >= 8192) {
+            this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_8k.jpeg");
+        } else {
+            this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_4k.jpeg");
+        }
+
+        this.initNodeGl()
+        this.initPicketGl()
+        this.initWorldMapGl()
+        this.initConnectionsGl()
+    }
+
+    private renderWorldMap() {
         let gl = this.gl
-
-        // World Map
         gl.depthMask(false);
         gl.useProgram(glShaders[EShader.WorldMap]);
         gl.uniformMatrix4fv(this.worldMapVPLoc, false, a.matViewProjection);
@@ -446,9 +400,19 @@ export class CWorld {
         gl.uniform1i(this.worldMapTextureLoc, 0);
         gl.bindVertexArray(this.worldMapVao);
         gl.drawArrays(gl.TRIANGLES, 0, 108);
-        gl.depthMask(true);
+    }
 
-        // Nodes
+    renderConnections() {
+        let gl = this.gl
+        gl.useProgram(glShaders[EShader.Connection]);
+        gl.uniformMatrix4fv(this.connectionVPLoc, false, a.matViewProjection);
+        gl.bindVertexArray(this.connectionVao);
+        gl.drawArraysInstanced(gl.LINES, 0, 2, this.numConnectionsToDraw);
+    }
+
+    renderNodes() {
+        let gl = this.gl
+        gl.depthMask(true);
         gl.useProgram(glShaders[EShader.Icosa]);
         gl.uniformMatrix4fv(this.icosaVPLoc, false, a.matViewProjection);
         gl.uniform4fv(this.paramsLoc, this.params);
@@ -457,14 +421,18 @@ export class CWorld {
         gl.uniform1i(this.noiseTextureLoc, 0);
         gl.bindVertexArray(this.icosaVao);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.istate.agraph_length);
-        if (this.drawConnections) {
-            console.log('draw connections: ', this.numConnectionsToDraw)
-            gl.useProgram(glShaders[EShader.Connection]);
-            gl.uniformMatrix4fv(this.connectionVPLoc, false, a.matViewProjection);
-            gl.bindVertexArray(this.connectionVao);
-            gl.drawArraysInstanced(gl.LINES, 0, 2, this.numConnectionsToDraw);
-        }
 
+    }
+
+    public renderGl() {
+        let elapsed = this.startTime - Date.now()
+        this.params[0] = elapsed / 1000.0;
+
+        this.renderWorldMap()
+        if (this.drawConnections && this.connectionMode) {
+            this.renderConnections()
+        }
+        this.renderNodes()
     }
 
     public renderPicker() {

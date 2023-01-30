@@ -23,13 +23,6 @@ export function randomColor() : vec4 {
     let red = Math.random()
     let blue = Math.random()
     let green = Math.random()
-    // if (channel == 0) {
-    //     red = 1
-    // } else if (channel == 1) {
-    //     green = 1
-    // } else {
-    //     blue = 1
-    // }
     let result = vec4.fromValues(red, green, blue, 1)
     return result
 }

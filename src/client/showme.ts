@@ -27,6 +27,9 @@ export class CShowme {
 
     onAction(isDown: boolean, id: EKeyId) {
         if (isDown) {
+            if (id == EKeyId.ToggleConnection && a.world) {
+                a.world.connectionMode = !a.world.connectionMode
+            }
             let action: IKeyAction = {
                 id: id,
                 timestamp: Date.now(),
