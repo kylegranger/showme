@@ -175,8 +175,8 @@ export class CShowme {
                 this.zoomLogarithm = 8.14786;
                 this.velZoom = 0;
             }
-            if (this.zoomLogarithm < 4.158883) {
-                this.zoomLogarithm = 4.158883;
+            if (this.zoomLogarithm < 3.158883) {
+                this.zoomLogarithm = 3.158883;
                 this.velZoom = 0;
             }
             a.nodeScale = zoomLogToScale(this.zoomLogarithm);

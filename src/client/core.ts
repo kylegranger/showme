@@ -38,6 +38,8 @@ export interface INode {
     ip: string
     betweenness: number
     closeness: number
+    column_position: number
+    column_size: number
     connections: number []
     geolocation: {
         ip: string

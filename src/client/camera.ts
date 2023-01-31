@@ -6,7 +6,7 @@ export class PCamera {
     private far: number
     private fovx: number
     public constructor(x: number, y: number, z: number) {
-        this.near = 32
+        this.near = 16
         this.far = 4096
         a.cameraX = x
         a.cameraY = y

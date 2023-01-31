@@ -39,6 +39,7 @@ public constructor(canvas: HTMLCanvasElement) {
     a.connectionsNode = document.createTextNode("");
     a.latitudeNode = document.createTextNode("");
     a.longitudeNode = document.createTextNode("");
+    a.positionNode = document.createTextNode("");
     a.cityNode = document.createTextNode("");
     a.countryNode = document.createTextNode("");
 
@@ -51,6 +52,7 @@ public constructor(canvas: HTMLCanvasElement) {
     document.querySelector("#connections").appendChild(a.connectionsNode);
     document.querySelector("#latitude").appendChild(a.latitudeNode);
     document.querySelector("#longitude").appendChild(a.longitudeNode);
+    document.querySelector("#position").appendChild(a.positionNode);
     document.querySelector("#city").appendChild(a.cityNode);
     document.querySelector("#country").appendChild(a.countryNode);
     document.getElementById("overlayRight").style.visibility = "hidden";

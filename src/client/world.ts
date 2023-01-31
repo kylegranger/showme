@@ -4,8 +4,8 @@ import { IState, EShader } from './core'
 import { a } from './globals';
 import { CNode } from './node'
 import { vec2, vec3, vec4, mat4 } from 'gl-matrix'
-import { initIcosa } from './icosa'
-import { initLineGeometry } from './connection'
+import { icosaGeometry } from './geomicosa'
+import { lineGeometry } from './geomline'
 import { CPicker } from './picker';
 import { initWorldMap } from './worldmap'
 import { glShaders } from './shaders';
@@ -77,7 +77,7 @@ export class CWorld {
         this.maxConnections = 0;
         this.drawConnections = false
         this.numConnectionsToDraw = 0
-        this.connectionMode = false;
+        this.connectionMode = true;
     }
 
     public update() {
@@ -93,7 +93,7 @@ export class CWorld {
         }
         this.updateTransformData()
         let done = Date.now();
-        console.log(`now ${now} done ${done} delta ${done-now}`)
+        // console.log(`now ${now} done ${done} delta ${done-now}`)
 
     }
 
@@ -106,7 +106,7 @@ export class CWorld {
         console.log(`  got id ${id}`)
         if (id >= 0) {
             let node = this.nodes[id];
-            console.log('node: ', node.inode);
+            console.log('  node: ', node.inode);
             a.ipNode.nodeValue = node.inode.ip
             a.betweennessNode.nodeValue = node.inode.betweenness.toFixed(6)
             a.closenessNode.nodeValue = node.inode.closeness.toFixed(6)
@@ -115,6 +115,7 @@ export class CWorld {
             a.longitudeNode.nodeValue = node.inode.geolocation.longitude.toFixed(4)
             a.cityNode.nodeValue = node.inode.geolocation.city
             a.countryNode.nodeValue = node.inode.geolocation.country
+            a.positionNode.nodeValue = node.inode.column_position.toString()
             document.getElementById("overlayRight").style.visibility = "visible";
         } else {
             document.getElementById("overlayRight").style.visibility = "hidden";
@@ -122,12 +123,12 @@ export class CWorld {
         if (id != this.selectedId) {
             if (this.selectedId != -1) {
                 // restore color
-                console.log('restore color id ', this.selectedId)
+                console.log('  restore color id ', this.selectedId)
                 this.transformData.set(this.nodes[this.selectedId].color, this.selectedId*NODE_TRANSFORM_SIZE);
             }
             if (id != -1) {
                 // set new selection to white
-                console.log('set white id ', id)
+                console.log('  set white id ', id)
                 let node: CNode = this.nodes[id];
                 this.transformData.set(this.white, id*NODE_TRANSFORM_SIZE);
                 this.setConnectionData(node)
@@ -148,15 +149,11 @@ export class CWorld {
         console.log('nodes length : ', this.nodes.length)
         for (let node of this.nodes) {
             this.transformData.set(node.color, n);
-            n += 4
-            this.transformData.set(node.metadata, n);
-            n += 4
-            this.transformData.set(node.idColor, n);
-            n += 4
-            this.transformData.set(node.matWorld, n);
-            n += 16
+            this.transformData.set(node.metadata, n+4);
+            this.transformData.set(node.idColor, n+8);
+            this.transformData.set(node.matWorld, n+12);
+            n += 28
         }
-        console.log('initTransformData: len ', this.transformData.length)
         this.transformBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
@@ -181,15 +178,12 @@ export class CWorld {
         for (let index of node.inode.connections) {
             let conn: CNode = this.nodes[index]
             this.connectionData.set(conn.color, n);
-            n += 4
-            this.connectionData.set(node.position, n);
-            n += 4
+            this.connectionData.set(node.position, n+4);
             let delta: vec3 = vec3.create()
             vec3.sub(delta, conn.position, node.position)
-            this.connectionData.set(delta, n);
-            n += 4
+            this.connectionData.set(delta, n+8);
+            n += 12
         }
-        console.log('  setConnectionData: len ', n)
         gl.bindBuffer(gl.ARRAY_BUFFER, this.connectionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.connectionData, gl.STATIC_DRAW);
     }
@@ -205,7 +199,7 @@ export class CWorld {
         gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
     }
 
-    private initNodeGl() {
+    private initNodesGl() {
         let gl = this.gl;
         let positionLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_position');
         let colorLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_color');
@@ -222,7 +216,7 @@ export class CWorld {
         console.log('icosa metadataLoc ', metadataLoc)
         console.log('icosa normalLoc ', normalLoc)
 
-        this.icosaGeometry = initIcosa(gl)
+        this.icosaGeometry = icosaGeometry(gl)
         this.icosaVao = gl.createVertexArray();
         gl.bindVertexArray(this.icosaVao);
 
@@ -256,7 +250,7 @@ export class CWorld {
 
     }
 
-    private initPicketGl() {
+    private initPickerGl() {
         let gl = this.gl;
         let positionLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_position');
         let pickerColorLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_pickerColor');
@@ -313,10 +307,8 @@ export class CWorld {
         gl.bindVertexArray(this.worldMapVao);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.worldMapGeometry);
-        // positions
         gl.enableVertexAttribArray(0);
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
-        // uv coords
         gl.enableVertexAttribArray(1);
         gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
     }
@@ -334,7 +326,7 @@ export class CWorld {
         console.log('connection vertex1Loc ', vertex1Loc)
         console.log('connection vertex2Loc ', vertex2Loc)
 
-        this.lineGeometry = initLineGeometry(gl)
+        this.lineGeometry = lineGeometry(gl)
         this.connectionVao = gl.createVertexArray();
         gl.bindVertexArray(this.connectionVao);
 
@@ -384,8 +376,8 @@ export class CWorld {
             this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_4k.jpeg");
         }
 
-        this.initNodeGl()
-        this.initPicketGl()
+        this.initNodesGl()
+        this.initPickerGl()
         this.initWorldMapGl()
         this.initConnectionsGl()
     }

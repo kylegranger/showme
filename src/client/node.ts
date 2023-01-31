@@ -8,7 +8,6 @@ import { idToColor, randomColor } from './util'
 
 const WORLD_WIDTH: number = 3600;
 const WORLD_HEIGHT: number = 1800;
-const WORLD_DEPTH: number = 24;
 
 export class CNode {
     public inode: INode
@@ -61,21 +60,23 @@ export class CNode {
     }
 
     public initializePosition(isLocalHost: boolean) {
-        // normalize and perform Wager VI projection on longitude/x
-        // https://en.wikipedia.org/wiki/Wagner_VI_projection
-        // shader does inverse
+        const zScale = 0.8;
         let x: number = (this.inode.geolocation.longitude + 180) / 360;
         let y: number = (this.inode.geolocation.latitude + 90) / 180;
-        let z: number = isLocalHost ? 1 : Math.random();
+        let z: number = this.inode.column_position*zScale;
 
         let longitude = x - 0.5;
         let latitude = y - 0.5;
+        // normalize and perform Wager VI projection on longitude/x
+        // https://en.wikipedia.org/wiki/Wagner_VI_projection
+        // shader does inverse
         let transformedX = 0.5 + longitude * Math.sqrt(1 - 3*latitude*latitude);
+
 
         this.setPosition(
             transformedX * WORLD_WIDTH - WORLD_WIDTH/2,
             y * WORLD_HEIGHT - WORLD_HEIGHT/2,
-            z * WORLD_DEPTH * 0.8 + WORLD_DEPTH * 0.2,
+            z,
         )
     }
 
