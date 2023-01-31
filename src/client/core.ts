@@ -1,5 +1,8 @@
 
 
+export const WORLD_WIDTH: number = 3600;
+export const WORLD_HEIGHT: number = 1800;
+
 export enum EShader {
     Icosa = 0,
     Picker,

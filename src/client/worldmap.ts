@@ -1,21 +1,4 @@
-
-// const vertexData = [
-//     // top left
-//     -1800, 900,    0, 0,
-//     // bottom right
-//     1800, -900,    1, 1,
-//     // bottom left
-//     -1800, -900,   0, 1,
-//     // top left
-//     -1800, 900,    0, 0,
-//     // top right
-//     1800,  900,    1, 0,
-//     // bottom right
-//     1800, -900,    1, 1,
-// ]
-
-const WORLD_WIDTH: number = 3600;
-const WORLD_HEIGHT: number = 1800;
+import { WORLD_WIDTH, WORLD_HEIGHT } from './core'
 
 const NUM_XTILES: number = 6
 const NUM_YTILES: number = 3

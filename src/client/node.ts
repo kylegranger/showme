@@ -1,13 +1,9 @@
 /// <reference path="../../node_modules/@webgpu/types/dist/index.d.ts" />
 
-import { INode } from './core'
+import { INode, WORLD_WIDTH, WORLD_HEIGHT } from './core'
 import { a } from './globals'
 import { mat4, vec3, vec4 } from 'gl-matrix'
 import { idToColor, randomColor } from './util'
-
-
-const WORLD_WIDTH: number = 3600;
-const WORLD_HEIGHT: number = 1800;
 
 export class CNode {
     public inode: INode

@@ -84,17 +84,14 @@ export class CWorld {
         if (!this.transformData) {
             return;
         }
-        let n = 500
-        let now = Date.now();
+        // let now = Date.now();
         for (let node of this.nodes) {
-            node.incRotationY(2 * Math.PI / 180 * n / 4000)
+            node.incRotationY(2 * Math.PI / 180 * node.numConnections / 400)
             node.updateMatrix()
-            n++
         }
         this.updateTransformData()
-        let done = Date.now();
+        // let done = Date.now();
         // console.log(`now ${now} done ${done} delta ${done-now}`)
-
     }
 
     public handleClick(x: number, y: number) {
@@ -106,7 +103,6 @@ export class CWorld {
         console.log(`  got id ${id}`)
         if (id >= 0) {
             let node = this.nodes[id];
-            console.log('  node: ', node.inode);
             a.ipNode.nodeValue = node.inode.ip
             a.betweennessNode.nodeValue = node.inode.betweenness.toFixed(6)
             a.closenessNode.nodeValue = node.inode.closeness.toFixed(6)
@@ -123,12 +119,10 @@ export class CWorld {
         if (id != this.selectedId) {
             if (this.selectedId != -1) {
                 // restore color
-                console.log('  restore color id ', this.selectedId)
                 this.transformData.set(this.nodes[this.selectedId].color, this.selectedId*NODE_TRANSFORM_SIZE);
             }
             if (id != -1) {
                 // set new selection to white
-                console.log('  set white id ', id)
                 let node: CNode = this.nodes[id];
                 this.transformData.set(this.white, id*NODE_TRANSFORM_SIZE);
                 this.setConnectionData(node)
@@ -145,14 +139,12 @@ export class CWorld {
         let gl = this.gl
         this.transformData = new Float32Array(this.istate.agraph_length * NODE_TRANSFORM_SIZE);
         let n: number = 0;
-        console.log('this.istate.agraph_length : ', this.istate.agraph_length)
-        console.log('nodes length : ', this.nodes.length)
         for (let node of this.nodes) {
             this.transformData.set(node.color, n);
             this.transformData.set(node.metadata, n+4);
             this.transformData.set(node.idColor, n+8);
             this.transformData.set(node.matWorld, n+12);
-            n += 28
+            n += NODE_TRANSFORM_SIZE
         }
         this.transformBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
@@ -297,8 +289,6 @@ export class CWorld {
 
     private initWorldMapGl() {
         let gl = this.gl;
-        let positionLoc = gl.getAttribLocation(glShaders[EShader.WorldMap], 'a_position');
-        const uvLoc = gl.getAttribLocation(glShaders[EShader.WorldMap], 'a_uv');
         this.worldMapVPLoc = gl.getUniformLocation(glShaders[EShader.WorldMap], 'u_viewProjection');
         this.worldMapTextureLoc = gl.getUniformLocation(glShaders[EShader.WorldMap], 'u_worldMapTexture');
 
@@ -348,6 +338,21 @@ export class CWorld {
         gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 12, 0);
     }
 
+    public async initTexturesGl() {
+        let gl = this.gl;
+        this.noiseTexture = createRandomTexture(gl, 1024, 1);
+        let width = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+        console.log('max width is ', width);
+        let precision = gl.getParameter(gl.DEPTH_BITS) ;
+        console.log('precision is ', precision);
+        if (width >= 8192) {
+            this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_8k.jpeg");
+        } else {
+            this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_4k.jpeg");
+        }
+
+    }
+
     public async initialize() {
         console.log('world::initialize, num nodes: ' + this.istate.agraph_length);
         let gl = this.gl;
@@ -361,21 +366,8 @@ export class CWorld {
             this.nodes.push(node);
             id++
         }
-        console.log('last id: ', id)
 
-
-        // Textures
-        this.noiseTexture = createRandomTexture(gl, 1024, 1);
-        let width = gl.getParameter(gl.MAX_TEXTURE_SIZE)
-        console.log('max width is ', width);
-        let precision = gl.getParameter(gl.DEPTH_BITS) 
-        console.log('precision is ', precision);
-        if (width >= 8192) {
-            this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_8k.jpeg");
-        } else {
-            this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_4k.jpeg");
-        }
-
+        await this.initTexturesGl()
         this.initNodesGl()
         this.initPickerGl()
         this.initWorldMapGl()
@@ -413,13 +405,11 @@ export class CWorld {
         gl.uniform1i(this.noiseTextureLoc, 0);
         gl.bindVertexArray(this.icosaVao);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.istate.agraph_length);
-
     }
 
     public renderGl() {
         let elapsed = this.startTime - Date.now()
         this.params[0] = elapsed / 1000.0;
-
         this.renderWorldMap()
         if (this.drawConnections && this.connectionMode) {
             this.renderConnections()

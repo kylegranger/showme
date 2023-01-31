@@ -49,7 +49,7 @@ export class CShowme {
 
     public handleClick(x: number, y: number) {
         // console.log(`showme: handleClick: ${x}, ${y}`)
-        a.world.handleClick(x, y)
+        a.world.handleClick(x-0.5, y-0.5)
 
     }
 
