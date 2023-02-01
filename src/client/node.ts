@@ -67,8 +67,6 @@ export class CNode {
         // https://en.wikipedia.org/wiki/Wagner_VI_projection
         // shader does inverse
         let transformedX = 0.5 + longitude * Math.sqrt(1 - 3*latitude*latitude);
-
-
         this.setPosition(
             transformedX * WORLD_WIDTH - WORLD_WIDTH/2,
             y * WORLD_HEIGHT - WORLD_HEIGHT/2,
