@@ -68,29 +68,31 @@ export class CWorld {
     private minCloseness: number
     private maxCloseness: number
     public colorMode: EColorMode
+    private canvas: HTMLCanvasElement
 
-    public constructor(istate: IState, gl: WebGL2RenderingContext) {
-        this.istate = istate
-        this.gl = gl
-        this.inDrag = false
-        this.mouseIsOut = true
-        this.nodes = new Array()
-        this.startTime = Date.now()
-        this.params = vec4.create()
-        this.picker = new CPicker()
-        this.selectedId = -1
-        this.white = vec4.fromValues(1, 1, 1, 1)
+    public constructor(istate: IState, gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) {
+        this.istate = istate;
+        this.canvas = canvas;
+        this.gl = gl;
+        this.inDrag = false;
+        this.mouseIsOut = true;
+        this.nodes = new Array();
+        this.startTime = Date.now();
+        this.params = vec4.create();
+        this.picker = new CPicker(gl);
+        this.selectedId = -1;
+        this.white = vec4.fromValues(1, 1, 1, 1);
         this.maxConnections = 0;
         this.minConnections = 10000;
-        this.drawConnections = false
-        this.numConnectionsToDraw = 0
+        this.drawConnections = false;
+        this.numConnectionsToDraw = 0;
         this.connectionMode = false;
         this.minBetweenness = 100;
         this.maxBetweenness = 0;
         this.minCloseness = 100;
         this.maxCloseness = 0;
         this.colorMode = EColorMode.Random
-    }
+    };
 
     private updateNodeColors() {
         let n: number = 0;
@@ -138,7 +140,7 @@ export class CWorld {
 
     public handleClick(x: number, y: number) {
         console.log(`world: handleClick: ${x}, ${y}`)
-        let screenCoords : vec2 = vec2.fromValues(x/a.canvas.width, 1 - y/a.canvas.height )
+        let screenCoords : vec2 = vec2.fromValues(x/this.canvas.width, 1 - y/this.canvas.height )
         this.picker.preRender(screenCoords[0], screenCoords[1])
         this.renderPicker();
         let id = this.picker.postRender();
@@ -206,18 +208,18 @@ export class CWorld {
     }
 
     private setConnectionData(node: CNode) {
-        console.log('setConnectionData, node ', node.id)
-        let gl = this.gl
+        console.log('setConnectionData, node ', node.id);
+        let gl = this.gl;
         let n: number = 0;
-        console.log('  num_connections : ', node.numConnections)
+        console.log('  num_connections : ', node.numConnections);
         for (let index of node.inode.connections) {
-            let conn: CNode = this.nodes[index]
+            let conn: CNode = this.nodes[index];
             this.connectionData.set(conn.randomColor, n);
             this.connectionData.set(node.position, n+4);
-            let delta: vec3 = vec3.create()
-            vec3.sub(delta, conn.position, node.position)
+            let delta: vec3 = vec3.create();
+            vec3.sub(delta, conn.position, node.position);
             this.connectionData.set(delta, n+8);
-            n += 12
+            n += 12;
         }
         gl.bindBuffer(gl.ARRAY_BUFFER, this.connectionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.connectionData, gl.STATIC_DRAW);

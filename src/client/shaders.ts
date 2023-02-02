@@ -5,8 +5,7 @@ import { EShader, IShader } from './core'
 export var glShaders : WebGLProgram []
 
 
-export function createProgram(shader: IShader) : WebGLProgram {
-    let gl = a.gl
+export function createProgram(shader: IShader, gl: WebGL2RenderingContext) : WebGLProgram {
     const vertexShader = gl.createShader(gl.VERTEX_SHADER)
     gl.shaderSource(vertexShader, shader.vertex)
     gl.compileShader(vertexShader)
@@ -33,10 +32,10 @@ export function createProgram(shader: IShader) : WebGLProgram {
     return program
 }
 
-export function initShadersGl() {
+export function initShadersGl(gl: WebGL2RenderingContext) {
     glShaders = new Array(EShader.Last)
     for (let i = 0; i < EShader.Last; i++) {
-      glShaders[i] = createProgram(glslSrc[i])
+      glShaders[i] = createProgram(glslSrc[i], gl)
     }
 }
 

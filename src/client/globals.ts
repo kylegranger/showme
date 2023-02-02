@@ -6,14 +6,8 @@ import { CWorld } from './world'
 
 export interface IGlobalInfo {
     world: CWorld
-    canvas: HTMLCanvasElement
-    pcamera: PCamera
-    cameraX: number
-    cameraY: number
-    cameraZ: number
     worldWidth: number
     worldHeight: number
-    gl: WebGL2RenderingContext
     matView: mat4
     matViewProjection: mat4
     matProjection: mat4
@@ -34,14 +28,8 @@ export interface IGlobalInfo {
 }
 
 export let a : IGlobalInfo= {
-    canvas: null,
-    pcamera: null,
-    cameraX: 0,
-    cameraY: 0,
-    cameraZ: 0,
     worldWidth: 0,
     worldHeight: 0,
-    gl: null,
     matView: null,
     matProjection: null,
     matViewProjection: null,

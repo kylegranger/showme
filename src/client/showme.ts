@@ -3,7 +3,6 @@ import { EKeyId, IKeyAction } from './core'
 import { a } from './globals';
 import { PCamera } from './camera';
 import { zoomLogToScale } from './util'
-import { vec3 } from 'gl-matrix'
 
 export class CShowme {
     public  gl: WebGL2RenderingContext
@@ -14,9 +13,12 @@ export class CShowme {
     private zoomLogarithm: number
     private lastUpdateTime: number
     public mouseIsOut: boolean
+    public camera: PCamera
+    private canvas: HTMLCanvasElement
 
-    public constructor() {
+    public constructor(canvas: HTMLCanvasElement) {
         this.actions = new Array()
+        this.canvas = canvas
         this.lastUpdateTime = Date.now()
         this.velPanX = 0
         this.velPanY = 0
@@ -165,9 +167,9 @@ export class CShowme {
             let dimen : number = (a.worldWidth > a.worldHeight) ? a.worldWidth : a.worldHeight
             let dx = this.velPanX * delta / 1000 * dimen
             let dy = this.velPanY * delta / 1000 * dimen
-            a.cameraX += dx;
-            a.cameraY -= dy;
-            a.pcamera.update()
+            this.camera.x += dx;
+            this.camera.y -= dy;
+            this.camera.update()
         }
 
         // apply zoom velocity
@@ -183,25 +185,10 @@ export class CShowme {
                 this.velZoom = 0;
             }
             a.nodeScale = zoomLogToScale(this.zoomLogarithm);
-            a.cameraZ = Math.exp(this.zoomLogarithm)
+            this.camera.z = Math.exp(this.zoomLogarithm)
             // console.log(`Z ${a.cameraZ}, log ${this.zoomLogarithm}`)
-            a.pcamera.update()
+            this.camera.update()
         }
-    }
-
-    private clampCamera() {
-        // if (a.cameraX < -a.tabla.width/2) {
-        //     a.cameraX = -a.tabla.width/2
-        // }
-        // if (a.cameraX > a.tabla.width/2) {
-        //     a.cameraX = a.tabla.width/2
-        // }
-        // if (a.cameraY < -a.tabla.height/2) {
-        //     a.cameraY = -a.tabla.height/2
-        // }
-        // if (a.cameraY > a.tabla.height/2) {
-        //     a.cameraY = a.tabla.height/2
-        // }
     }
 
     public update() {
@@ -209,19 +196,16 @@ export class CShowme {
         let delta = time - this.lastUpdateTime
         this.lastUpdateTime = time
         this.updateActions(delta)
-        a.pcamera.update()
+        this.camera.update()
         a.world.update()
     }
 
-    public async initialize() {
-        a.cameraX = 0
-        a.cameraY = 0
-        a.cameraZ = 1200
-        a.pcamera = new PCamera(a.cameraX, a.cameraY, a.cameraZ)
-        this.zoomLogarithm = Math.log(a.cameraZ)
+    public async initialize(gl: WebGL2RenderingContext) {
+        this.camera = new PCamera(0, 0, 1200, this.canvas)
+        this.zoomLogarithm = Math.log(1200)
         a.nodeScale = zoomLogToScale(this.zoomLogarithm);
-        a.pcamera.update();
-        await this.initializeGl(a.gl)
+        this.camera.update();
+        await this.initializeGl(gl)
     }
 
     async initializeGl(gl: WebGL2RenderingContext) {

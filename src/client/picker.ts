@@ -13,8 +13,8 @@ export class CPicker {
     textureHeight: number
     x: number
     y: number
-    public constructor() {
-        this.gl = a.gl
+    public constructor(gl: WebGL2RenderingContext) {
+        this.gl = gl
         this.renderTarget = null
         this.pixelBuffer = new Uint8Array(4);
         this.textureWidth = PICKER_TEXTURE_SIZE

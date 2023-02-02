@@ -21,11 +21,11 @@ function onWindowResize() {
     canvas.height = window.innerHeight
 
     const bounds = canvas.getBoundingClientRect();
-    if (a.gl) {
-        a.gl.viewport(0,0,bounds.width,bounds.height)
+    if (app.gl) {
+        app.gl.viewport(0,0,bounds.width,bounds.height)
     }
-    if (a.pcamera) {
-        a.pcamera.update()
+    if (app.showme.camera) {
+        app.showme.camera.update()
     }
 }
 

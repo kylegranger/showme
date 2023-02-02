@@ -2,7 +2,6 @@ import { CShowme } from './showme'
 import { EKeyId } from './core'
 import { a } from './globals'
 import { mat4, vec3 } from 'gl-matrix'
-import { PCamera } from "camera"
 import { initShadersGl } from './shaders'
 import { IState } from './core'
 import { CMousekeyCtlr } from './mousekeyctlr'
@@ -10,22 +9,22 @@ import { CWorld } from './world'
 
 export class CApp {
     public showme: CShowme;
-    public camera: PCamera
-    public  gl: any
     private initialized: boolean
     private mousekey: CMousekeyCtlr
     private startTime: number
     private lastTime: number
     private iter: number
+    public gl: WebGL2RenderingContext
+    private canvas: HTMLCanvasElement
 
 
 public constructor(canvas: HTMLCanvasElement) {
-    a.canvas = canvas
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
+    this.canvas = canvas
+    this.canvas.width = window.innerWidth
+    this.canvas.height = window.innerHeight
     console.log('Use WebGL')
-    a.gl = canvas.getContext("webgl2");
-    if (!a.gl) {
+    this.gl = canvas.getContext("webgl2");
+    if (!this.gl) {
         console.log('Failed to get the rendering context for WebGL');
         return;
     }
@@ -79,8 +78,8 @@ async init(state: IState) {
     a.matProjection = mat4.create()
     a.matViewProjection = mat4.create()
     a.nodeScale = vec3.fromValues(1, 1, 1)
-    this.initializeWebGl(a.gl)
-    a.world = new CWorld(state, a.gl);
+    this.initializeWebGl(this.gl)
+    a.world = new CWorld(state, this.gl, this.canvas);
     a.world.initialize();
     this.initialized = true
     this.mousekey = new CMousekeyCtlr(this)
@@ -95,7 +94,7 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
         gl.cullFace(gl.BACK)
         gl.enable(gl.CULL_FACE)
         gl.lineWidth(4.0);
-        initShadersGl()
+        initShadersGl(gl)
         await this.initShowme()
     }
 
@@ -112,7 +111,7 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
 
     public renderGl() {
         this.updateFps();
-        a.gl.clear(a.gl.COLOR_BUFFER_BIT | a.gl.DEPTH_BUFFER_BIT);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         a.timeNode.nodeValue = (Date.now()/1000 - this.startTime).toFixed(2);   // 2 decimal places        
         if (this.showme) {
             this.showme.renderGl()
@@ -123,14 +122,14 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
         if (!this.initialized) {
             return
         }
-        if (a.gl) {
+        if (this.gl) {
             this.renderGl()
         }
     }
 
     async initShowme() {
-        let temp = new CShowme()
-        await temp.initialize()
+        let temp = new CShowme(this.canvas)
+        await temp.initialize(this.gl)
         this.showme = temp
     }
 
