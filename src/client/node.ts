@@ -10,6 +10,7 @@ export class CNode {
     public randomColor: vec4
     public betweenColor: vec4
     public closeColor: vec4
+    public degreeColor: vec4
     public idColor: vec4
     public id: number
     public metadata: vec4
@@ -56,6 +57,8 @@ export class CNode {
             return this.randomColor;
         } else if (colorMode == EColorMode.Between) {
             return this.betweenColor;
+        } else if (colorMode == EColorMode.Degree) {
+            return this.degreeColor;
         } else {
             return this.closeColor;
         }

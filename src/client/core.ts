@@ -15,6 +15,7 @@ export enum EColorMode {
     Random = 0,
     Between,
     Close,
+    Degree,
     Last
 }
 

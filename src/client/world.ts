@@ -59,6 +59,7 @@ export class CWorld {
     private selectedId: number
     private white: vec4;
     private maxConnections: number
+    private minConnections: number
     private drawConnections: boolean
     private numConnectionsToDraw: number
     public connectionMode: boolean
@@ -80,6 +81,7 @@ export class CWorld {
         this.selectedId = -1
         this.white = vec4.fromValues(1, 1, 1, 1)
         this.maxConnections = 0;
+        this.minConnections = 10000;
         this.drawConnections = false
         this.numConnectionsToDraw = 0
         this.connectionMode = false;
@@ -113,7 +115,10 @@ export class CWorld {
             case EColorMode.Close:
                 a.colorModeNode.nodeValue = 'closeness'
                 break;
-        }
+            case EColorMode.Degree:
+                a.colorModeNode.nodeValue = 'degree'
+                break;
+            }
         this.updateNodeColors();
     }
 
@@ -395,6 +400,9 @@ export class CWorld {
         if (inode.connections.length > this.maxConnections) {
             this.maxConnections = inode.connections.length;
         }
+        if (inode.connections.length < this.minConnections) {
+            this.minConnections = inode.connections.length;
+        }
         if (inode.betweenness < this.minBetweenness) {
             this.minBetweenness = inode.betweenness;
         }
@@ -409,60 +417,44 @@ export class CWorld {
         }
     }
 
-    private setAuxColors() {
-        for (let node of this.nodes) {
-            let b = (node.inode.betweenness - this.minBetweenness) / (this.maxBetweenness - this.minBetweenness);
-            if (b < 0.25) {
-                // blue -> cyan
-                b = b * 4;
-                node.betweenColor = vec4.fromValues(0, b, 1, 1);
-            } else if (b < 0.5) {
-                // cyan -> green
-                b = (b-0.25) * 4;
-                node.betweenColor = vec4.fromValues(0, 1, 1-b, 1);
-            } else if (b < 0.75) {
-                // green -> yellow
-                b = (b-0.50) * 4;
-                node.betweenColor = vec4.fromValues(b, 1, 0, 1);
-            } else {
-                // yellow -> red
-                b = (b-0.75) * 4;
-                node.betweenColor = vec4.fromValues(1, 1-b, 0, 1);
-            }
-
-
-            let c =  (node.inode.closeness - this.minCloseness) / (this.maxCloseness - this.minCloseness);
-            if (c < 0.25) {
-                // blue -> cyan
-                c = c * 4;
-                node.closeColor = vec4.fromValues(0, c, 1, 1);
-            } else if (c < 0.5) {
-                // cyan -> green
-                c = (c-0.25) * 4;
-                node.closeColor = vec4.fromValues(0, 1, 1-c, 1);
-            } else if (c < 0.75) {
-                // green -> yellow
-                c = (c-0.50) * 4;
-                node.closeColor = vec4.fromValues(c, 1, 0, 1);
-            } else {
-                // yellow -> red
-                c = (c-0.75) * 4;
-                node.closeColor = vec4.fromValues(1, 1-c, 0, 1);
-            }
+    private colorFromNormalizedValue(v: number) : vec4 {
+        if (v < 0.25) {
+            // blue -> cyan
+            v = v * 4;
+            return vec4.fromValues(0, v, 1, 1);
+        } else if (v < 0.5) {
+            // cyan -> green
+            v = (v-0.25) * 4;
+            return vec4.fromValues(0, 1, 1-v, 1);
+        } else if (v < 0.75) {
+            // green -> yellow
+            v = (v-0.50) * 4;
+            return vec4.fromValues(v, 1, 0, 1);
+        } else {
+            // yellow -> red
+            v = (v-0.75) * 4;
+            return vec4.fromValues(1, 1-v, 0, 1);
         }
     }
 
+    private setAuxColors() {
+        for (let node of this.nodes) {
+            let b = (node.inode.betweenness - this.minBetweenness) / (this.maxBetweenness - this.minBetweenness);
+            node.betweenColor = this.colorFromNormalizedValue(b);
 
+            let c =  (node.inode.closeness - this.minCloseness) / (this.maxCloseness - this.minCloseness);
+            node.closeColor = this.colorFromNormalizedValue(c);
 
+            let d =  (node.numConnections - this.minConnections) / (this.maxConnections - this.minConnections);
+            node.degreeColor = this.colorFromNormalizedValue(d);
+        }
+    }
 
     public async initialize() {
         console.log('world::initialize, num nodes: ' + this.istate.agraph_length);
         let gl = this.gl;
         let id = 0
         for (let inode of this.istate.nodes) {
-            if (inode.connections.length > this.maxConnections) {
-                this.maxConnections = inode.connections.length
-            }
             let node = new CNode(inode, id)
             this.nodes.push(node);
             id++
