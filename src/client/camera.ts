@@ -30,9 +30,6 @@ export class PCamera {
         this.update()
     }
 
-    public release() {
-    }
-
     public update() : void {
         let aspect = this.canvas.width / this.canvas.height
         this.worldWidth = this.z * 1 / 0.886

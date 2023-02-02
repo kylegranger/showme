@@ -4,6 +4,7 @@ import { IState, EShader, INode, EColorMode } from './core'
 import { CNode } from './node'
 import { vec2, vec3, vec4, mat4 } from 'gl-matrix'
 import { icosaGeometry } from './geomicosa'
+import { gradientGeometry } from './geomgradient'
 import { lineGeometry } from './geomline'
 import { CPicker } from './picker';
 import { PCamera } from './camera';
@@ -22,6 +23,7 @@ export class CWorld {
     public  gl: WebGL2RenderingContext;
     private noiseTexture: WebGLTexture;
     private worldMapTexture: WebGLTexture;
+    private gradientTexture: WebGLTexture;
     private picker: CPicker;
 
     public topTexture: WebGLTexture;
@@ -34,6 +36,7 @@ export class CWorld {
     public inTouchY: number;
     public inTouchTime: number;
     private icosaGeometry: WebGLBuffer;
+    private gradientGeometry: WebGLBuffer;
     private worldMapGeometry: WebGLBuffer;
     private lineGeometry: WebGLBuffer;
     private transformBuffer: WebGLBuffer;
@@ -44,6 +47,7 @@ export class CWorld {
     private icosaVao: WebGLVertexArrayObject;
     private pickerVao: WebGLVertexArrayObject;
     private worldMapVao: WebGLVertexArrayObject;
+    private gradientVao: WebGLVertexArrayObject;
     private connectionVao: WebGLVertexArrayObject;
     public icosaVPLoc: WebGLUniformLocation;
     public worldMapVPLoc: WebGLUniformLocation;
@@ -51,6 +55,7 @@ export class CWorld {
     public paramsLoc: WebGLUniformLocation;
     public noiseTextureLoc: WebGLUniformLocation;
     public worldMapTextureLoc: WebGLUniformLocation;
+    public gradientTextureLoc: WebGLUniformLocation;
     public pickerVPLoc: WebGLUniformLocation;
     public pickerParamsLoc: WebGLUniformLocation;
     public pickerNoiseTextureLoc: WebGLUniformLocation;
@@ -63,6 +68,8 @@ export class CWorld {
     private drawConnections: boolean;
     private numConnectionsToDraw: number;
     public connectionMode: boolean;
+    public displayCommand: boolean;
+    public displayFps: boolean;
     private minBetweenness: number;
     private maxBetweenness: number;
     private minCloseness: number;
@@ -140,6 +147,7 @@ export class CWorld {
         this.drawConnections = false;
         this.numConnectionsToDraw = 0;
         this.connectionMode = false;
+        this.displayCommand = true;
         this.minBetweenness = 100;
         this.maxBetweenness = 0;
         this.minCloseness = 100;
@@ -402,6 +410,20 @@ export class CWorld {
         gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
     }
 
+    private initGradientGl() {
+        let gl = this.gl;
+        this.gradientTextureLoc = gl.getUniformLocation(glShaders[EShader.Gradient], 'u_gradientTexture');
+        this.gradientGeometry = gradientGeometry(gl)
+        this.gradientVao = gl.createVertexArray();
+        gl.bindVertexArray(this.gradientVao);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.gradientGeometry);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
+        gl.enableVertexAttribArray(1);
+        gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
+    }
+
     initConnectionsGl() {
         let gl = this.gl;
         let positionLoc = gl.getAttribLocation(glShaders[EShader.Connection], 'a_position');
@@ -449,6 +471,7 @@ export class CWorld {
         } else {
             this.worldMapTexture = await loadTexture(gl, "data/Blue_Marble_NG_4k.jpeg");
         }
+        this.gradientTexture = await loadTexture(gl, "data/gradient.jpeg");
 
     }
 
@@ -509,11 +532,11 @@ export class CWorld {
     public async initialize() {
         console.log('world::initialize, num nodes: ' + this.istate.agraph_length);
         let gl = this.gl;
-        let id = 0
+        let id = 0;
         for (let inode of this.istate.nodes) {
             let node = new CNode(inode, id, this.camera)
             this.nodes.push(node);
-            id++
+            id++;
         }
 
         for (let inode of this.istate.nodes) {
@@ -523,12 +546,13 @@ export class CWorld {
         console.log('maxBetweenness: ', this.maxBetweenness);
         console.log('minCloseness: ', this.minCloseness);
         console.log('maxCloseness: ', this.maxCloseness);
-        this.setAuxColors()
-        await this.initTexturesGl()
-        this.initNodesGl()
-        this.initPickerGl()
-        this.initWorldMapGl()
-        this.initConnectionsGl()
+        this.setAuxColors();
+        await this.initTexturesGl();
+        this.initNodesGl();
+        this.initPickerGl();
+        this.initWorldMapGl();
+        this.initConnectionsGl();
+        this.initGradientGl();
     }
 
     private renderWorldMap() {
@@ -541,6 +565,17 @@ export class CWorld {
         gl.uniform1i(this.worldMapTextureLoc, 0);
         gl.bindVertexArray(this.worldMapVao);
         gl.drawArrays(gl.TRIANGLES, 0, 108);
+    }
+
+    private renderGradient() {
+        let gl = this.gl
+        gl.depthMask(false);
+        gl.useProgram(glShaders[EShader.Gradient]);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.gradientTexture);
+        gl.uniform1i(this.gradientTextureLoc, 0);
+        gl.bindVertexArray(this.gradientVao);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
 
     renderConnections() {
@@ -572,6 +607,9 @@ export class CWorld {
             this.renderConnections()
         }
         this.renderNodes()
+        if (this.colorMode != EColorMode.Random) {
+            this.renderGradient();
+        }
     }
 
     public renderPicker() {

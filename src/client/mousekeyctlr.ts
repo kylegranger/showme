@@ -98,6 +98,10 @@ export class CMousekeyCtlr {
             this.app.onAction(true, EKeyId.ColorMode);
         } else if (evt.code == 'KeyN') {
             this.app.onAction(true, EKeyId.ToggleConnection);
+        } else if (evt.code == 'KeyX') {
+            this.app.onAction(true, EKeyId.ToggleCommand);
+        } else if (evt.code == 'KeyF') {
+            this.app.onAction(true, EKeyId.ToggleFps);
         } else if (evt.code == 'KeyI') {
             this.app.onAction(true, EKeyId.ZoomIn);
         } else if (evt.code == 'KeyO') {

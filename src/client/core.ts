@@ -8,6 +8,7 @@ export enum EShader {
     Picker,
     WorldMap,
     Connection,
+    Gradient,
     Last
 }
 
@@ -36,6 +37,8 @@ export enum EKeyId {
     ZoomIn = 'in',
     ZoomOut = 'out',
     ToggleConnection = 'conn',
+    ToggleCommand = 'command',
+    ToggleFps = 'fps',
     ColorMode = 'colormode'
 }
 
@@ -68,8 +71,4 @@ export interface IState {
     agraph_length: number
     elapsed: number
     nodes: INode []
-    min_betweenness: number
-    max_betweenness: number
-    min_closeness: number
-    max_closeness: number
 }

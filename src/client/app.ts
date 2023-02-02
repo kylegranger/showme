@@ -123,6 +123,14 @@ export class CApp {
             if (id == EKeyId.ToggleConnection && this.world) {
                 this.world.connectionMode = !this.world.connectionMode;
             }
+            if (id == EKeyId.ToggleCommand && this.world) {
+                this.world.displayCommand = !this.world.displayCommand;
+                document.getElementById("instructions").style.visibility = this.world.displayCommand ? "hidden" : "visible";
+            }
+            if (id == EKeyId.ToggleFps && this.world) {
+                this.world.displayFps = !this.world.displayFps;
+                document.getElementById("overlayLeft").style.visibility = this.world.displayFps ? "hidden" : "visible";
+            }
             if (id == EKeyId.ColorMode && this.world) {
                 this.world.cycleColorMode();
             }

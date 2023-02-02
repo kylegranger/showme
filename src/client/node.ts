@@ -16,7 +16,6 @@ export class CNode {
     public metadata: vec4;
     public info: vec4;
     public position: vec3;
-    public center: vec3;
     public rotation: vec3;
     public matWorld: mat4;
     public matMV: mat4;
@@ -25,10 +24,8 @@ export class CNode {
     public numConnections: number;
     private camera: PCamera;
 
-
     public release() {
         this.position = null
-        this.center = null
         this.rotation = null
         this.matWorld = null
         this.matMV = null
@@ -107,7 +104,7 @@ export class CNode {
         }
 
         this.position = vec3.create();
-        this.center = vec3.create();
+        // this.center = vec3.create();
         this.rotation = vec3.create();
         this.matWorld = mat4.create();
         this.matMV = mat4.create();
@@ -139,7 +136,6 @@ export class CNode {
         mat4.identity(this.matWorld);
         mat4.scale(this.matWorld, this.matWorld, this.camera.nodeScale);
         mat4.scale(this.matWorld, this.matWorld, vec3.fromValues(this.scale,this.scale, this.scale));
-        mat4.translate(this.matWorld, this.matWorld, vec3.fromValues(-this.center[0], -this.center[1], 0));
         mat4.fromYRotation(ry, this.rotation[1]);
         mat4.multiply(this.matWorld, ry, this.matWorld);
         mat4.fromTranslation(t, this.position);

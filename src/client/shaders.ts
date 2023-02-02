@@ -158,6 +158,29 @@ const glslIcosa : IShader = {
   `
   }
 
+  const glslGradient : IShader = {
+    vertex: `#version 300 es
+  in vec2 a_position;
+  in vec2 a_uv;
+  out vec2 vUv;
+
+  void main(){
+    vUv = a_uv;
+    gl_Position = vec4(a_position, 0.0, 1.0);
+  }
+  `,
+  fragment: `#version 300 es
+  precision highp float;
+  in vec2 vUv;
+  uniform sampler2D u_gradientTexture;
+  out vec4 fragColor;
+  void main() {
+     fragColor = texture(u_gradientTexture, vUv);
+  }
+  `
+  }
+
+
 
 
 
@@ -165,5 +188,6 @@ let glslSrc : IShader [] = [
     glslIcosa,
     glslPicker,
     glslWorldMap,
-    glslConnection
+    glslConnection,
+    glslGradient
 ]
