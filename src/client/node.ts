@@ -128,24 +128,24 @@ export class CNode {
     }
 
     public setPosition(x: number, y: number, z: number) {
-        this.position[0] = x
-        this.position[1] = y
-        this.position[2] = z
-        this.updateMatrix()
+        this.position[0] = x;
+        this.position[1] = y;
+        this.position[2] = z;
+        this.updateMatrix();
     }
 
     public updateMatrix() {
-        let ry = mat4.create()
-        let t = mat4.create()
-        mat4.identity(this.matWorld)
-        mat4.scale(this.matWorld, this.matWorld, a.nodeScale)
-        mat4.scale(this.matWorld, this.matWorld, vec3.fromValues(this.scale,this.scale, this.scale))
-        mat4.translate(this.matWorld, this.matWorld, vec3.fromValues(-this.center[0], -this.center[1], 0))
-        mat4.fromYRotation(ry, this.rotation[1])
-        mat4.multiply(this.matWorld, ry, this.matWorld)
-        mat4.fromTranslation(t, this.position)
-        mat4.multiply(this.matWorld, t, this.matWorld)
-        mat4.multiply(this.matMV, this.camera.matView, this.matWorld)
-        mat4.multiply(this.matMVP, this.camera.matProjection, this.matMV)
+        let ry = mat4.create();
+        let t = mat4.create();
+        mat4.identity(this.matWorld);
+        mat4.scale(this.matWorld, this.matWorld, a.nodeScale);
+        mat4.scale(this.matWorld, this.matWorld, vec3.fromValues(this.scale,this.scale, this.scale));
+        mat4.translate(this.matWorld, this.matWorld, vec3.fromValues(-this.center[0], -this.center[1], 0));
+        mat4.fromYRotation(ry, this.rotation[1]);
+        mat4.multiply(this.matWorld, ry, this.matWorld);
+        mat4.fromTranslation(t, this.position);
+        mat4.multiply(this.matWorld, t, this.matWorld);
+        mat4.multiply(this.matMV, this.camera.matView, this.matWorld);
+        mat4.multiply(this.matMVP, this.camera.matProjection, this.matMV);
     }
 }

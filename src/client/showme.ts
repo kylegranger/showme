@@ -3,23 +3,26 @@ import { EKeyId, IKeyAction } from './core'
 import { a } from './globals';
 import { PCamera } from './camera';
 import { zoomLogToScale } from './util'
+import { CWorld } from 'world';
 
 export class CShowme {
-    public  gl: WebGL2RenderingContext
-    public actions: IKeyAction []
-    private velPanX: number
-    private velPanY: number
-    private velZoom: number
-    private zoomLogarithm: number
-    private lastUpdateTime: number
-    public mouseIsOut: boolean
-    public camera: PCamera
-    private canvas: HTMLCanvasElement
+    public  gl: WebGL2RenderingContext;
+    public actions: IKeyAction [];
+    private velPanX: number;
+    private velPanY: number;
+    private velZoom: number;
+    private zoomLogarithm: number;
+    private lastUpdateTime: number;
+    public mouseIsOut: boolean;
+    public camera: PCamera;
+    private canvas: HTMLCanvasElement;
+    private world: CWorld;
 
-    public constructor(canvas: HTMLCanvasElement, camera: PCamera) {
+    public constructor(canvas: HTMLCanvasElement, camera: PCamera, world: CWorld) {
         this.actions = new Array();
         this.canvas = canvas;
         this.camera = camera;
+        this.world = world;
         this.lastUpdateTime = Date.now();
         this.velPanX = 0;
         this.velPanY = 0;
@@ -30,11 +33,11 @@ export class CShowme {
 
     onAction(isDown: boolean, id: EKeyId) {
         if (isDown) {
-            if (id == EKeyId.ToggleConnection && a.world) {
-                a.world.connectionMode = !a.world.connectionMode;
+            if (id == EKeyId.ToggleConnection && this.world) {
+                this.world.connectionMode = !this.world.connectionMode;
             }
-            if (id == EKeyId.ColorMode && a.world) {
-                a.world.cycleColorMode();
+            if (id == EKeyId.ColorMode && this.world) {
+                this.world.cycleColorMode();
             }
             let action: IKeyAction = {
                 id: id,
@@ -55,7 +58,7 @@ export class CShowme {
 
     public handleClick(x: number, y: number) {
         // console.log(`showme: handleClick: ${x}, ${y}`)
-        a.world.handleClick(x-0.5, y-0.5)
+        this.world.handleClick(x-0.5, y-0.5)
 
     }
 
@@ -91,7 +94,6 @@ export class CShowme {
                         }
                         break
                     case EKeyId.ArrowUp:
-                        console.log('key up');
                         accelY = -ACC * delta / 1500;
                         this.velPanY += accelY;
                         if (this.velPanY < -MAXVEL) {
@@ -134,7 +136,6 @@ export class CShowme {
         }
 
         if (accelY == 0 && this.velPanY != 0) {
-            console.log('have acc Y');
             accelY = ACC * 2 * delta / 1000;
             if (this.velPanY > 0) {
                 this.velPanY -= accelY;
@@ -171,7 +172,7 @@ export class CShowme {
             let dy = this.velPanY * delta / 1000 * dimen;
             this.camera.x += dx;
             this.camera.y -= dy;
-            this.camera.update()
+            this.camera.update();
         }
 
         // apply zoom velocity
@@ -199,7 +200,7 @@ export class CShowme {
         this.lastUpdateTime = time
         this.updateActions(delta)
         this.camera.update()
-        a.world.update()
+        this.world.update()
     }
 
     public async initialize(gl: WebGL2RenderingContext) {
@@ -215,8 +216,8 @@ export class CShowme {
 
     public renderGl() {
         this.update();
-        if (a.world) {
-            a.world.renderGl();
+        if (this.world) {
+            this.world.renderGl();
         }
     }
 

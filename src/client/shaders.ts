@@ -5,24 +5,24 @@ export var glShaders : WebGLProgram []
 
 
 export function createProgram(shader: IShader, gl: WebGL2RenderingContext) : WebGLProgram {
-    const vertexShader = gl.createShader(gl.VERTEX_SHADER)
-    gl.shaderSource(vertexShader, shader.vertex)
-    gl.compileShader(vertexShader)
+    const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vertexShader, shader.vertex);
+    gl.compileShader(vertexShader);
   
     var compiled = gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS);
     var compilationLog = gl.getShaderInfoLog(vertexShader);
   
-    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)
-    gl.shaderSource(fragmentShader, shader.fragment)
-    gl.compileShader(fragmentShader)
+    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fragmentShader, shader.fragment);
+    gl.compileShader(fragmentShader);
   
     compiled = gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS);
     compilationLog = gl.getShaderInfoLog(fragmentShader);
   
-    let program : WebGLProgram = gl.createProgram()
-    gl.attachShader(program, vertexShader)
-    gl.attachShader(program, fragmentShader)
-    gl.linkProgram(program)
+    let program : WebGLProgram = gl.createProgram();
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
   
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
         alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(program));
@@ -34,7 +34,7 @@ export function createProgram(shader: IShader, gl: WebGL2RenderingContext) : Web
 export function initShadersGl(gl: WebGL2RenderingContext) {
     glShaders = new Array(EShader.Last)
     for (let i = 0; i < EShader.Last; i++) {
-      glShaders[i] = createProgram(glslSrc[i], gl)
+      glShaders[i] = createProgram(glslSrc[i], gl);
     }
 }
 

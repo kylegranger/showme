@@ -110,8 +110,8 @@ function isPowerOf2(value) {
     return (value & (value - 1)) == 0;
 }
 
-const maxLog = 7.6
-const minLog = 4.1
+const maxLog = 7.6;
+const minLog = 4.1;
 const deltaLog = maxLog - minLog
 export function zoomLogToScale(zoomLogarithm: number) : vec3 {
     let scale = 1;

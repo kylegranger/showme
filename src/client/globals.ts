@@ -5,10 +5,6 @@ import { CWorld } from './world'
 
 
 export interface IGlobalInfo {
-    world: CWorld
-    matView: mat4
-    matViewProjection: mat4
-    matProjection: mat4
     nodeScale: vec3
     timeNode: Text,
     fpsNode: Text,
@@ -26,11 +22,7 @@ export interface IGlobalInfo {
 }
 
 export let a : IGlobalInfo= {
-    matView: null,
-    matProjection: null,
-    matViewProjection: null,
     nodeScale: null,
-    world: null,
     timeNode: null,
     fpsNode: null,
     latitudeNode: null,

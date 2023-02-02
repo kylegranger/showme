@@ -133,10 +133,10 @@ export class CWorld {
         }
         // let now = Date.now();
         for (let node of this.nodes) {
-            node.incRotationY(2 * Math.PI / 180 * node.numConnections / 400)
-            node.updateMatrix()
+            node.incRotationY(2 * Math.PI / 180 * node.numConnections / 400);
+            node.updateMatrix();
         }
-        this.updateTransformData()
+        this.updateTransformData();
         // let done = Date.now();
         // console.log(`now ${now} done ${done} delta ${done-now}`)
     }
@@ -150,16 +150,16 @@ export class CWorld {
         console.log(`  got id ${id}`)
         if (id >= 0) {
             let node = this.nodes[id];
-            a.ipNode.nodeValue = node.inode.ip
-            a.betweennessNode.nodeValue = node.inode.betweenness.toFixed(6)
-            a.closenessNode.nodeValue = node.inode.closeness.toFixed(6)
-            a.connectionsNode.nodeValue = node.numConnections.toString()
-            a.latitudeNode.nodeValue = node.inode.geolocation.latitude.toFixed(4)
-            a.longitudeNode.nodeValue = node.inode.geolocation.longitude.toFixed(4)
-            a.cityNode.nodeValue = node.inode.geolocation.city
-            a.countryNode.nodeValue = node.inode.geolocation.country
-            a.positionNode.nodeValue = node.inode.cell_position.toString()
-            a.heightNode.nodeValue = node.inode.cell_height.toString()
+            a.ipNode.nodeValue = node.inode.ip;
+            a.betweennessNode.nodeValue = node.inode.betweenness.toFixed(6);
+            a.closenessNode.nodeValue = node.inode.closeness.toFixed(6);
+            a.connectionsNode.nodeValue = node.numConnections.toString();
+            a.latitudeNode.nodeValue = node.inode.geolocation.latitude.toFixed(4);
+            a.longitudeNode.nodeValue = node.inode.geolocation.longitude.toFixed(4);
+            a.cityNode.nodeValue = node.inode.geolocation.city;
+            a.countryNode.nodeValue = node.inode.geolocation.country;
+            a.positionNode.nodeValue = node.inode.cell_position.toString();
+            a.heightNode.nodeValue = node.inode.cell_height.toString();
             document.getElementById("overlayRight").style.visibility = "visible";
         } else {
             document.getElementById("overlayRight").style.visibility = "hidden";
@@ -173,9 +173,9 @@ export class CWorld {
                 // set new selection to white
                 let node: CNode = this.nodes[id];
                 this.transformData.set(this.white, id*NODE_TRANSFORM_SIZE);
-                this.setConnectionData(node)
+                this.setConnectionData(node);
                 this.numConnectionsToDraw = node.numConnections;
-                this.drawConnections = true
+                this.drawConnections = true;
             } else {
                 this.drawConnections = false;
             }
@@ -184,7 +184,7 @@ export class CWorld {
     }
 
     private initTransformData() {
-        let gl = this.gl
+        let gl = this.gl;
         this.transformData = new Float32Array(this.istate.agraph_length * NODE_TRANSFORM_SIZE);
         let n: number = 0;
         for (let node of this.nodes) {

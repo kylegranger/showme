@@ -17,6 +17,7 @@ export class CApp {
     public gl: WebGL2RenderingContext;
     private canvas: HTMLCanvasElement
     private camera: PCamera;
+    private world: CWorld;
 
 
 public constructor(canvas: HTMLCanvasElement) {
@@ -74,43 +75,40 @@ public constructor(canvas: HTMLCanvasElement) {
 }
 
 async init(state: IState) {
-    console.log('init: state ', state)
+    console.log('init: state ', state);
 
-    this.camera = new PCamera(0, 0, 1200, this.canvas)
+    this.camera = new PCamera(0, 0, 1200, this.canvas);
 
-    a.nodeScale = vec3.fromValues(1, 1, 1)
-    this.initializeWebGl(this.gl)
-    a.world = new CWorld(state, this.gl, this.canvas, this.camera);
-    a.world.initialize();
-    this.initialized = true
-    this.mousekey = new CMousekeyCtlr(this)
+    a.nodeScale = vec3.fromValues(1, 1, 1);
+    this.initializeWebGl(this.gl);
+    this.world = new CWorld(state, this.gl, this.canvas, this.camera);
+    this.world.initialize();
+    this.initialized = true;
+    this.mousekey = new CMousekeyCtlr(this);
 
-    let temp = new CShowme(this.canvas, this.camera)
-    await temp.initialize(this.gl)
-    this.showme = temp
-
-
-
+    let temp = new CShowme(this.canvas, this.camera, this.world);
+    await temp.initialize(this.gl);
+    this.showme = temp;
 }
 
 async initializeWebGl(gl: WebGL2RenderingContext) {
-        gl.clearColor(0.0, 0.0, 0.0, 1.0)
-        gl.clearDepth(1.0)
-        gl.clearStencil(0.0)
-        gl.enable(gl.DEPTH_TEST)
-        gl.frontFace(gl.CW)
-        gl.cullFace(gl.BACK)
-        gl.enable(gl.CULL_FACE)
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearDepth(1.0);
+        gl.clearStencil(0.0);
+        gl.enable(gl.DEPTH_TEST);
+        gl.frontFace(gl.CW);
+        gl.cullFace(gl.BACK);
+        gl.enable(gl.CULL_FACE);
         gl.lineWidth(4.0);
-        initShadersGl(gl)
+        initShadersGl(gl);
     }
 
     private updateFps() {
         this.iter++
         if (this.iter % 15 == 0) {
-            let now = Date.now()
-            let delta = now - this.lastTime
-            this.lastTime = now
+            let now = Date.now();
+            let delta = now - this.lastTime;
+            this.lastTime = now;
             let fps = 1000*15/delta;
             a.fpsNode.nodeValue = fps.toFixed(6);
         }
@@ -121,16 +119,16 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         a.timeNode.nodeValue = (Date.now()/1000 - this.startTime).toFixed(2);   // 2 decimal places        
         if (this.showme) {
-            this.showme.renderGl()
+            this.showme.renderGl();
         }
     }
 
     public render() {
         if (!this.initialized) {
-            return
+            return;
         }
         if (this.gl) {
-            this.renderGl()
+            this.renderGl();
         }
     }
 
