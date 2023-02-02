@@ -129,12 +129,6 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
         }
     }
 
-    // async initShowme() {
-    //     let temp = new CShowme(this.canvas)
-    //     await temp.initialize(this.gl)
-    //     this.showme = temp
-    // }
-
     readTextFile(file, callback) {
         var rawFile = new XMLHttpRequest();
         rawFile.overrideMimeType("application/json");

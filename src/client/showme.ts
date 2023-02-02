@@ -28,7 +28,6 @@ export class CShowme {
         this.velZoom = 0;
         this.mouseIsOut = true;
     }
-    
 
     onAction(isDown: boolean, id: EKeyId) {
         if (isDown) {
@@ -56,9 +55,8 @@ export class CShowme {
     }
 
     public handleClick(x: number, y: number) {
-        // console.log(`showme: handleClick: ${x}, ${y}`)
+        console.log(`showme: handleClick: ${x}, ${y}`)
         this.world.handleClick(x-0.5, y-0.5)
-
     }
 
     private updateActions(delta: number) {
@@ -119,7 +117,6 @@ export class CShowme {
 
         // if no acceleration, apply deacceleration to any current velocities
         if (accelX == 0 && this.velPanX != 0) {
-            //console.log('do deacceleration')
             accelX = ACC * 2 * delta / 1000;
             if (this.velPanX > 0) {
                 this.velPanX -= accelX;

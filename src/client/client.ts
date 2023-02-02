@@ -14,15 +14,15 @@ window.addEventListener('resize', onWindowResize, false)
 function onWindowResize() {
 
     var canvas: HTMLCanvasElement = document.querySelector("#bancan");
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     const bounds = canvas.getBoundingClientRect();
     if (app.gl) {
         app.gl.viewport(0,0,bounds.width,bounds.height)
     }
     if (app.showme.camera) {
-        app.showme.camera.update()
+        app.showme.camera.update();
     }
 }
 
@@ -31,8 +31,8 @@ window.addEventListener('contextmenu', function (e) {
 }, false);
 
 var animate = function () {
-    app.render()
-    requestAnimationFrame(animate)
+    app.render();
+    requestAnimationFrame(animate);
 };
 
 animate();

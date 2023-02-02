@@ -76,6 +76,7 @@ export class CPicker {
         return id;
     }
 
+    // read a single BGRA pixel from the render target
     private readTarget(gl: WebGL2RenderingContext, offsetX : number, offsetY : number) {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.renderTarget);

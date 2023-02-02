@@ -15,7 +15,6 @@ export class PCamera {
     matProjection: mat4;
     nodeScale: vec3;
 
-
     public constructor(x: number, y: number, z: number, canvas: HTMLCanvasElement) {
         this.near = 16
         this.far = 4096
