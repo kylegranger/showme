@@ -1,6 +1,4 @@
 import { CShowme } from './showme'
-import { a } from './globals'
-import { mat4, vec3 } from 'gl-matrix'
 import { initShadersGl } from './shaders'
 import { IState } from './core'
 import { CMousekeyCtlr } from './mousekeyctlr'
@@ -31,38 +29,38 @@ public constructor(canvas: HTMLCanvasElement) {
         return;
     }
 
-    // Create text nodes to save some time for the browser.
-    a.timeNode = document.createTextNode("");
-    a.fpsNode = document.createTextNode("");
-    a.ipNode = document.createTextNode("");
-    a.betweennessNode = document.createTextNode("");
-    a.closenessNode = document.createTextNode("");
-    a.connectionsNode = document.createTextNode("");
-    a.latitudeNode = document.createTextNode("");
-    a.longitudeNode = document.createTextNode("");
-    a.positionNode = document.createTextNode("");
-    a.heightNode = document.createTextNode("");
-    a.cityNode = document.createTextNode("");
-    a.countryNode = document.createTextNode("");
-    a.colorModeNode = document.createTextNode("");
+    // // Create text nodes to save some time for the browser.
+    // a.timeNode = document.createTextNode("");
+    // a.fpsNode = document.createTextNode("");
+    // a.ipNode = document.createTextNode("");
+    // a.betweennessNode = document.createTextNode("");
+    // a.closenessNode = document.createTextNode("");
+    // a.connectionsNode = document.createTextNode("");
+    // a.latitudeNode = document.createTextNode("");
+    // a.longitudeNode = document.createTextNode("");
+    // a.positionNode = document.createTextNode("");
+    // a.heightNode = document.createTextNode("");
+    // a.cityNode = document.createTextNode("");
+    // a.countryNode = document.createTextNode("");
+    // a.colorModeNode = document.createTextNode("");
 
-    a.colorModeNode.nodeValue = 'random'
+    // a.colorModeNode.nodeValue = 'random'
 
-    // Add those text nodes where they need to go
-    document.querySelector("#time").appendChild(a.timeNode);
-    document.querySelector("#fps").appendChild(a.fpsNode);
-    document.querySelector("#ip").appendChild(a.ipNode);
-    document.querySelector("#betweenness").appendChild(a.betweennessNode);
-    document.querySelector("#closeness").appendChild(a.closenessNode);
-    document.querySelector("#connections").appendChild(a.connectionsNode);
-    document.querySelector("#latitude").appendChild(a.latitudeNode);
-    document.querySelector("#longitude").appendChild(a.longitudeNode);
-    document.querySelector("#position").appendChild(a.positionNode);
-    document.querySelector("#height").appendChild(a.heightNode);
-    document.querySelector("#city").appendChild(a.cityNode);
-    document.querySelector("#country").appendChild(a.countryNode);
-    document.querySelector("#colormode").appendChild(a.colorModeNode);
-    document.getElementById("overlayRight").style.visibility = "hidden";
+    // // Add those text nodes where they need to go
+    // document.querySelector("#time").appendChild(a.timeNode);
+    // document.querySelector("#fps").appendChild(a.fpsNode);
+    // document.querySelector("#ip").appendChild(a.ipNode);
+    // document.querySelector("#betweenness").appendChild(a.betweennessNode);
+    // document.querySelector("#closeness").appendChild(a.closenessNode);
+    // document.querySelector("#connections").appendChild(a.connectionsNode);
+    // document.querySelector("#latitude").appendChild(a.latitudeNode);
+    // document.querySelector("#longitude").appendChild(a.longitudeNode);
+    // document.querySelector("#position").appendChild(a.positionNode);
+    // document.querySelector("#height").appendChild(a.heightNode);
+    // document.querySelector("#city").appendChild(a.cityNode);
+    // document.querySelector("#country").appendChild(a.countryNode);
+    // document.querySelector("#colormode").appendChild(a.colorModeNode);
+    // document.getElementById("overlayRight").style.visibility = "hidden";
 
     let self = this
     self.readTextFile('data/state.json', async function(atext: string) {
@@ -79,7 +77,6 @@ async init(state: IState) {
 
     this.camera = new PCamera(0, 0, 1200, this.canvas);
 
-    a.nodeScale = vec3.fromValues(1, 1, 1);
     this.initializeWebGl(this.gl);
     this.world = new CWorld(state, this.gl, this.canvas, this.camera);
     this.world.initialize();
@@ -110,14 +107,14 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
             let delta = now - this.lastTime;
             this.lastTime = now;
             let fps = 1000*15/delta;
-            a.fpsNode.nodeValue = fps.toFixed(6);
+            this.world.fpsNode.nodeValue = fps.toFixed(6);
         }
     }
 
     public renderGl() {
         this.updateFps();
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-        a.timeNode.nodeValue = (Date.now()/1000 - this.startTime).toFixed(2);   // 2 decimal places        
+        this.world.timeNode.nodeValue = (Date.now()/1000 - this.startTime).toFixed(2);   // 2 decimal places        
         if (this.showme) {
             this.showme.renderGl();
         }

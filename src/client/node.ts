@@ -1,7 +1,6 @@
 /// <reference path="../../node_modules/@webgpu/types/dist/index.d.ts" />
 
 import { INode, WORLD_WIDTH, WORLD_HEIGHT, EColorMode } from './core'
-import { a } from './globals'
 import { mat4, vec3, vec4 } from 'gl-matrix'
 import { idToColor, randomColor } from './util'
 import { PCamera } from './camera'
@@ -138,7 +137,7 @@ export class CNode {
         let ry = mat4.create();
         let t = mat4.create();
         mat4.identity(this.matWorld);
-        mat4.scale(this.matWorld, this.matWorld, a.nodeScale);
+        mat4.scale(this.matWorld, this.matWorld, this.camera.nodeScale);
         mat4.scale(this.matWorld, this.matWorld, vec3.fromValues(this.scale,this.scale, this.scale));
         mat4.translate(this.matWorld, this.matWorld, vec3.fromValues(-this.center[0], -this.center[1], 0));
         mat4.fromYRotation(ry, this.rotation[1]);

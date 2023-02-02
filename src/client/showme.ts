@@ -1,6 +1,5 @@
 
 import { EKeyId, IKeyAction } from './core'
-import { a } from './globals';
 import { PCamera } from './camera';
 import { zoomLogToScale } from './util'
 import { CWorld } from 'world';
@@ -187,7 +186,7 @@ export class CShowme {
                 this.zoomLogarithm = 3.158883;
                 this.velZoom = 0;
             }
-            a.nodeScale = zoomLogToScale(this.zoomLogarithm);
+            this.camera.nodeScale = zoomLogToScale(this.zoomLogarithm);
             this.camera.z = Math.exp(this.zoomLogarithm)
             // console.log(`Z ${a.cameraZ}, log ${this.zoomLogarithm}`)
             this.camera.update()
@@ -205,7 +204,7 @@ export class CShowme {
 
     public async initialize(gl: WebGL2RenderingContext) {
         this.zoomLogarithm = Math.log(1200);
-        a.nodeScale = zoomLogToScale(this.zoomLogarithm);
+        this.camera.nodeScale = zoomLogToScale(this.zoomLogarithm);
         this.camera.update();
         await this.initializeGl(gl);
     }

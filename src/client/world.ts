@@ -1,7 +1,6 @@
 /// <reference path="../../node_modules/@webgpu/types/dist/index.d.ts" />
 
 import { IState, EShader, INode, EColorMode } from './core'
-import { a } from './globals';
 import { CNode } from './node'
 import { vec2, vec3, vec4, mat4 } from 'gl-matrix'
 import { icosaGeometry } from './geomicosa'
@@ -72,6 +71,57 @@ export class CWorld {
     private canvas: HTMLCanvasElement;
     private camera: PCamera;
 
+    public timeNode: Text;
+    public fpsNode: Text;
+    public ipNode: Text;
+    public betweennessNode: Text;
+    public closenessNode: Text;
+    public connectionsNode: Text;
+    public latitudeNode: Text;
+    public longitudeNode: Text;
+    public cityNode: Text;
+    public countryNode: Text;
+    public positionNode: Text;
+    public heightNode: Text;
+    public colorModeNode: Text;
+
+
+    private initTextNodes() {
+
+        // Create text nodes to save some time for the browser.
+        this.timeNode = document.createTextNode("");
+        this.fpsNode = document.createTextNode("");
+        this.ipNode = document.createTextNode("");
+        this.betweennessNode = document.createTextNode("");
+        this.closenessNode = document.createTextNode("");
+        this.connectionsNode = document.createTextNode("");
+        this.latitudeNode = document.createTextNode("");
+        this.longitudeNode = document.createTextNode("");
+        this.positionNode = document.createTextNode("");
+        this.heightNode = document.createTextNode("");
+        this.cityNode = document.createTextNode("");
+        this.countryNode = document.createTextNode("");
+        this.colorModeNode = document.createTextNode("");
+
+        this.colorModeNode.nodeValue = 'random'
+
+        // Add those text nodes where they need to go
+        document.querySelector("#time").appendChild(this.timeNode);
+        document.querySelector("#fps").appendChild(this.fpsNode);
+        document.querySelector("#ip").appendChild(this.ipNode);
+        document.querySelector("#betweenness").appendChild(this.betweennessNode);
+        document.querySelector("#closeness").appendChild(this.closenessNode);
+        document.querySelector("#connections").appendChild(this.connectionsNode);
+        document.querySelector("#latitude").appendChild(this.latitudeNode);
+        document.querySelector("#longitude").appendChild(this.longitudeNode);
+        document.querySelector("#position").appendChild(this.positionNode);
+        document.querySelector("#height").appendChild(this.heightNode);
+        document.querySelector("#city").appendChild(this.cityNode);
+        document.querySelector("#country").appendChild(this.countryNode);
+        document.querySelector("#colormode").appendChild(this.colorModeNode);
+        document.getElementById("overlayRight").style.visibility = "hidden";
+    }
+
     public constructor(istate: IState, gl: WebGL2RenderingContext, canvas: HTMLCanvasElement, camera: PCamera) {
         this.istate = istate;
         this.canvas = canvas;
@@ -95,6 +145,7 @@ export class CWorld {
         this.minCloseness = 100;
         this.maxCloseness = 0;
         this.colorMode = EColorMode.Random
+        this.initTextNodes();
     };
 
     private updateNodeColors() {
@@ -112,16 +163,16 @@ export class CWorld {
         }
         switch (this.colorMode) {
             case EColorMode.Random:
-                a.colorModeNode.nodeValue = 'random'
+                this.colorModeNode.nodeValue = 'random'
                 break;
             case EColorMode.Between:
-                a.colorModeNode.nodeValue = 'betweenness'
+                this.colorModeNode.nodeValue = 'betweenness'
                 break;
             case EColorMode.Close:
-                a.colorModeNode.nodeValue = 'closeness'
+                this.colorModeNode.nodeValue = 'closeness'
                 break;
             case EColorMode.Degree:
-                a.colorModeNode.nodeValue = 'degree'
+                this.colorModeNode.nodeValue = 'degree'
                 break;
             }
         this.updateNodeColors();
@@ -150,16 +201,16 @@ export class CWorld {
         console.log(`  got id ${id}`)
         if (id >= 0) {
             let node = this.nodes[id];
-            a.ipNode.nodeValue = node.inode.ip;
-            a.betweennessNode.nodeValue = node.inode.betweenness.toFixed(6);
-            a.closenessNode.nodeValue = node.inode.closeness.toFixed(6);
-            a.connectionsNode.nodeValue = node.numConnections.toString();
-            a.latitudeNode.nodeValue = node.inode.geolocation.latitude.toFixed(4);
-            a.longitudeNode.nodeValue = node.inode.geolocation.longitude.toFixed(4);
-            a.cityNode.nodeValue = node.inode.geolocation.city;
-            a.countryNode.nodeValue = node.inode.geolocation.country;
-            a.positionNode.nodeValue = node.inode.cell_position.toString();
-            a.heightNode.nodeValue = node.inode.cell_height.toString();
+            this.ipNode.nodeValue = node.inode.ip;
+            this.betweennessNode.nodeValue = node.inode.betweenness.toFixed(6);
+            this.closenessNode.nodeValue = node.inode.closeness.toFixed(6);
+            this.connectionsNode.nodeValue = node.numConnections.toString();
+            this.latitudeNode.nodeValue = node.inode.geolocation.latitude.toFixed(4);
+            this.longitudeNode.nodeValue = node.inode.geolocation.longitude.toFixed(4);
+            this.cityNode.nodeValue = node.inode.geolocation.city;
+            this.countryNode.nodeValue = node.inode.geolocation.country;
+            this.positionNode.nodeValue = node.inode.cell_position.toString();
+            this.heightNode.nodeValue = node.inode.cell_height.toString();
             document.getElementById("overlayRight").style.visibility = "visible";
         } else {
             document.getElementById("overlayRight").style.visibility = "hidden";

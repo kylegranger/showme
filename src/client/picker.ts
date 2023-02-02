@@ -1,6 +1,5 @@
 
 import { colorToId } from './util'
-import { a } from './globals'
 
 const PICKER_TEXTURE_SIZE: number = 2048;
 
