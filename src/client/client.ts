@@ -21,8 +21,8 @@ function onWindowResize() {
     if (app.gl) {
         app.gl.viewport(0,0,bounds.width,bounds.height)
     }
-    if (app.showme.camera) {
-        app.showme.camera.update();
+    if (app.camera) {
+        app.camera.update();
     }
 }
 

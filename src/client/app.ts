@@ -1,12 +1,12 @@
-import { CShowme } from './showme'
 import { initShadersGl } from './shaders'
 import { IState } from './core'
 import { CMousekeyCtlr } from './mousekeyctlr'
 import { CWorld } from './world'
 import { PCamera } from './camera'
+import { EKeyId, IKeyAction } from './core'
+import { zoomLogToScale } from './util'
 
 export class CApp {
-    public showme: CShowme;
     private mousekey: CMousekeyCtlr
     private initialized: boolean;
     private startTime: number;
@@ -14,91 +14,67 @@ export class CApp {
     private iter: number;
     public gl: WebGL2RenderingContext;
     private canvas: HTMLCanvasElement
-    private camera: PCamera;
+    public camera: PCamera;
     private world: CWorld;
 
+    public actions: IKeyAction [];
+    private velPanX: number;
+    private velPanY: number;
+    private velZoom: number;
+    private zoomLogarithm: number;
+    private lastUpdateTime: number;
+    public mouseIsOut: boolean;
 
-public constructor(canvas: HTMLCanvasElement) {
-    this.canvas = canvas
-    this.canvas.width = window.innerWidth
-    this.canvas.height = window.innerHeight
-    console.log('Use WebGL')
-    this.gl = canvas.getContext("webgl2");
-    if (!this.gl) {
-        console.log('Failed to get the rendering context for WebGL');
-        return;
+
+    public constructor(canvas: HTMLCanvasElement) {
+        this.canvas = canvas
+        this.canvas.width = window.innerWidth
+        this.canvas.height = window.innerHeight
+        console.log('Use WebGL')
+        this.gl = canvas.getContext("webgl2");
+        if (!this.gl) {
+            console.log('Failed to get the rendering context for WebGL');
+            return;
+        }
+
+        let self = this
+        self.readTextFile('data/state.json', async function(atext: string) {
+            let istate = <IState>JSON.parse(atext)
+                await self.init(istate)
+        });
+        this.startTime = Date.now()/1000
+        this.lastTime = 0
+        this.iter = 0
+        this.lastUpdateTime = Date.now();
+        this.velPanX = 0;
+        this.velPanY = 0;
+        this.velZoom = 0;
+        this.mouseIsOut = true;
+        this.actions = new Array();
     }
 
-    // // Create text nodes to save some time for the browser.
-    // a.timeNode = document.createTextNode("");
-    // a.fpsNode = document.createTextNode("");
-    // a.ipNode = document.createTextNode("");
-    // a.betweennessNode = document.createTextNode("");
-    // a.closenessNode = document.createTextNode("");
-    // a.connectionsNode = document.createTextNode("");
-    // a.latitudeNode = document.createTextNode("");
-    // a.longitudeNode = document.createTextNode("");
-    // a.positionNode = document.createTextNode("");
-    // a.heightNode = document.createTextNode("");
-    // a.cityNode = document.createTextNode("");
-    // a.countryNode = document.createTextNode("");
-    // a.colorModeNode = document.createTextNode("");
-
-    // a.colorModeNode.nodeValue = 'random'
-
-    // // Add those text nodes where they need to go
-    // document.querySelector("#time").appendChild(a.timeNode);
-    // document.querySelector("#fps").appendChild(a.fpsNode);
-    // document.querySelector("#ip").appendChild(a.ipNode);
-    // document.querySelector("#betweenness").appendChild(a.betweennessNode);
-    // document.querySelector("#closeness").appendChild(a.closenessNode);
-    // document.querySelector("#connections").appendChild(a.connectionsNode);
-    // document.querySelector("#latitude").appendChild(a.latitudeNode);
-    // document.querySelector("#longitude").appendChild(a.longitudeNode);
-    // document.querySelector("#position").appendChild(a.positionNode);
-    // document.querySelector("#height").appendChild(a.heightNode);
-    // document.querySelector("#city").appendChild(a.cityNode);
-    // document.querySelector("#country").appendChild(a.countryNode);
-    // document.querySelector("#colormode").appendChild(a.colorModeNode);
-    // document.getElementById("overlayRight").style.visibility = "hidden";
-
-    let self = this
-    self.readTextFile('data/state.json', async function(atext: string) {
-        let istate = <IState>JSON.parse(atext)
-            await self.init(istate)
-    });
-    this.startTime = Date.now()/1000
-    this.lastTime = 0
-    this.iter = 0
-}
-
-async init(state: IState) {
-    console.log('init: state ', state);
-
-    this.camera = new PCamera(0, 0, 1200, this.canvas);
-
-    this.initializeWebGl(this.gl);
-    this.world = new CWorld(state, this.gl, this.canvas, this.camera);
-    this.world.initialize();
-    this.initialized = true;
-    this.mousekey = new CMousekeyCtlr(this);
-
-    let temp = new CShowme(this.canvas, this.camera, this.world);
-    await temp.initialize(this.gl);
-    this.showme = temp;
-}
-
-async initializeWebGl(gl: WebGL2RenderingContext) {
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clearDepth(1.0);
-        gl.clearStencil(0.0);
-        gl.enable(gl.DEPTH_TEST);
-        gl.frontFace(gl.CW);
-        gl.cullFace(gl.BACK);
-        gl.enable(gl.CULL_FACE);
-        gl.lineWidth(4.0);
-        initShadersGl(gl);
+    async init(state: IState) {
+        console.log('init: state ', state);
+        this.camera = new PCamera(0, 0, 1200, this.canvas);
+        this.initialize();
+        this.initializeWebGl(this.gl);
+        this.world = new CWorld(state, this.gl, this.canvas, this.camera);
+        this.world.initialize();
+        this.initialized = true;
+        this.mousekey = new CMousekeyCtlr(this);
     }
+
+    async initializeWebGl(gl: WebGL2RenderingContext) {
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clearDepth(1.0);
+            gl.clearStencil(0.0);
+            gl.enable(gl.DEPTH_TEST);
+            gl.frontFace(gl.CW);
+            gl.cullFace(gl.BACK);
+            gl.enable(gl.CULL_FACE);
+            gl.lineWidth(4.0);
+            initShadersGl(gl);
+        }
 
     private updateFps() {
         this.iter++
@@ -114,9 +90,10 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
     public renderGl() {
         this.updateFps();
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-        this.world.timeNode.nodeValue = (Date.now()/1000 - this.startTime).toFixed(2);   // 2 decimal places        
-        if (this.showme) {
-            this.showme.renderGl();
+        this.world.timeNode.nodeValue = (Date.now()/1000 - this.startTime).toFixed(2);
+        if (this.world) {
+            this.update();
+            this.world.renderGl();
         }
     }
 
@@ -140,5 +117,182 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
         }
         rawFile.send(null);
     }
+
+    onAction(isDown: boolean, id: EKeyId) {
+        if (isDown) {
+            if (id == EKeyId.ToggleConnection && this.world) {
+                this.world.connectionMode = !this.world.connectionMode;
+            }
+            if (id == EKeyId.ColorMode && this.world) {
+                this.world.cycleColorMode();
+            }
+            let action: IKeyAction = {
+                id: id,
+                timestamp: Date.now(),
+                acceleration: 0,
+                velocity: 0
+            };
+            this.actions.push(action);
+        } else {
+            this.actions = this.actions.filter(function(action, index, arr){ 
+                return action.id != id;
+            });
+        }
+    }
+
+    public handleClickRelease(x: number, y: number) {
+    }
+
+    public handleClick(x: number, y: number) {
+        console.log(`showme: handleClick: ${x}, ${y}`)
+        this.world.handleClick(x-0.5, y-0.5)
+    }
+
+    private updateActions(delta: number) {
+        // reach maximum velocity in 200 ms
+        const ACC = 2.5;
+        const MAXVEL = 0.5;
+        let accelX: number = 0;
+        let accelY: number = 0;
+        let accelZ: number = 0;
+        if (this.actions.length) {
+            for (let action of this.actions) {
+                switch (action.id) {
+                    case EKeyId.ArrowLeft:
+                        accelX = -ACC * delta / 1500;
+                        this.velPanX += accelX;
+                        if (this.velPanX < -MAXVEL) {
+                            this.velPanX = -MAXVEL;
+                        }
+                        break
+                    case EKeyId.ArrowRight:
+                        accelX = ACC * delta / 1500;
+                        this.velPanX += accelX;
+                        if (this.velPanX > MAXVEL) {
+                            this.velPanX = MAXVEL;
+                        }
+                        break
+                    case EKeyId.ArrowDown:
+                        accelY = ACC * delta / 1500;
+                        this.velPanY += accelY;
+                        if (this.velPanY > MAXVEL) {
+                            this.velPanY = MAXVEL;
+                        }
+                        break
+                    case EKeyId.ArrowUp:
+                        accelY = -ACC * delta / 1500;
+                        this.velPanY += accelY;
+                        if (this.velPanY < -MAXVEL) {
+                            this.velPanY = -MAXVEL;
+                        }
+                        break
+                    case EKeyId.ZoomIn:
+                        accelZ = -ACC * delta / 1000;
+                        this.velZoom += accelZ;
+                        if (this.velZoom < -MAXVEL) {
+                            this.velZoom = -MAXVEL;
+                        }
+                        break
+                    case EKeyId.ZoomOut:
+                        accelZ = ACC * delta / 1000;
+                        this.velZoom += accelZ;
+                        if (this.velZoom > MAXVEL) {
+                            this.velZoom = MAXVEL;
+                        }
+                        break
+                }
+            }
+        }
+
+        // if no acceleration, apply deacceleration to any current velocities
+        if (accelX == 0 && this.velPanX != 0) {
+            accelX = ACC * 2 * delta / 1000;
+            if (this.velPanX > 0) {
+                this.velPanX -= accelX;
+                if (this.velPanX < 0) {
+                    this.velPanX = 0;
+                } 
+            } else {
+                this.velPanX += accelX;
+                if (this.velPanX > 0) {
+                    this.velPanX = 0;
+                } 
+            }
+        }
+
+        if (accelY == 0 && this.velPanY != 0) {
+            accelY = ACC * 2 * delta / 1000;
+            if (this.velPanY > 0) {
+                this.velPanY -= accelY;
+                if (this.velPanY < 0) {
+                    this.velPanY = 0;
+                } 
+            } else {
+                this.velPanY += accelY;
+                if (this.velPanY > 0) {
+                    this.velPanY = 0;
+                } 
+            }
+        } 
+
+        if (accelZ == 0 && this.velZoom != 0) {
+            accelZ = ACC * 2 * delta / 1000;
+            if (this.velZoom > 0) {
+                this.velZoom -= accelZ;
+                if (this.velZoom < 0) {
+                    this.velZoom = 0;
+                } 
+            } else {
+                this.velZoom += accelZ;
+                if (this.velZoom > 0) {
+                    this.velZoom = 0;
+                } 
+            }
+        }
+
+        // apply pan velocity
+        if (this.velPanX || this.velPanY) {
+            let dimen : number = (this.camera.worldWidth > this.camera.worldHeight) ? this.camera.worldWidth : this.camera.worldHeight;
+            let dx = this.velPanX * delta / 1000 * dimen;
+            let dy = this.velPanY * delta / 1000 * dimen;
+            this.camera.x += dx;
+            this.camera.y -= dy;
+            this.camera.update();
+        }
+
+        // apply zoom velocity
+        if (this.velZoom) {
+            let dz = this.velZoom * delta / 1000
+            this.zoomLogarithm += dz
+            if (this.zoomLogarithm > 8.14786) {
+                this.zoomLogarithm = 8.14786;
+                this.velZoom = 0;
+            }
+            if (this.zoomLogarithm < 3.158883) {
+                this.zoomLogarithm = 3.158883;
+                this.velZoom = 0;
+            }
+            this.camera.nodeScale = zoomLogToScale(this.zoomLogarithm);
+            this.camera.z = Math.exp(this.zoomLogarithm)
+            // console.log(`Z ${this.camera.z}, log ${this.zoomLogarithm}`)
+            this.camera.update()
+        }
+    }
+
+    public update() {
+        let time = Date.now()
+        let delta = time - this.lastUpdateTime
+        this.lastUpdateTime = time
+        this.updateActions(delta)
+        this.camera.update()
+        this.world.update()
+    }
+
+    public async initialize() {
+        this.zoomLogarithm = Math.log(1200);
+        this.camera.nodeScale = zoomLogToScale(this.zoomLogarithm);
+        this.camera.update();
+    }
+
 }
 
