@@ -1,5 +1,4 @@
 
-import { a } from './globals'
 import { EShader, IShader } from './core'
 
 export var glShaders : WebGLProgram []

@@ -7,6 +7,7 @@ import { vec2, vec3, vec4, mat4 } from 'gl-matrix'
 import { icosaGeometry } from './geomicosa'
 import { lineGeometry } from './geomline'
 import { CPicker } from './picker';
+import { PCamera } from './camera';
 import { initWorldMap } from './worldmap'
 import { glShaders } from './shaders';
 import { createRandomTexture, loadTexture } from './util';
@@ -17,62 +18,64 @@ const CONNECTION_TRANSFORM_SIZE: number = 12;
 
 
 export class CWorld {
-    public istate: IState
-    public nodes: CNode []
-    public  gl: WebGL2RenderingContext
-    private noiseTexture: WebGLTexture
-    private worldMapTexture: WebGLTexture
-    private picker: CPicker
+    public istate: IState;
+    public nodes: CNode [];
+    public  gl: WebGL2RenderingContext;
+    private noiseTexture: WebGLTexture;
+    private worldMapTexture: WebGLTexture;
+    private picker: CPicker;
 
-    public topTexture: WebGLTexture
-    public inDrag: boolean
-    public inTap: boolean
-    public inDragStartTime: number
-    public mouseIsOut: boolean
-    public inSwipe: boolean
-    public inTouchX: number
-    public inTouchY: number
-    public inTouchTime: number
-    private icosaGeometry: WebGLBuffer
-    private worldMapGeometry: WebGLBuffer
-    private lineGeometry: WebGLBuffer
-    private transformBuffer: WebGLBuffer
-    private pickerBuffer: WebGLBuffer
-    private connectionBuffer: WebGLBuffer
-    private transformData: Float32Array
-    private connectionData: Float32Array
-    private icosaVao: WebGLVertexArrayObject
-    private pickerVao: WebGLVertexArrayObject
-    private worldMapVao: WebGLVertexArrayObject
-    private connectionVao: WebGLVertexArrayObject
-    public icosaVPLoc: WebGLUniformLocation
-    public worldMapVPLoc: WebGLUniformLocation
-    public connectionVPLoc: WebGLUniformLocation
-    public paramsLoc: WebGLUniformLocation
-    public noiseTextureLoc: WebGLUniformLocation
-    public worldMapTextureLoc: WebGLUniformLocation
-    public pickerVPLoc: WebGLUniformLocation
-    public pickerParamsLoc: WebGLUniformLocation
-    public pickerNoiseTextureLoc: WebGLUniformLocation
-    private startTime: number
-    private params: vec4
-    private selectedId: number
-    private white: vec4;
-    private maxConnections: number
-    private minConnections: number
-    private drawConnections: boolean
-    private numConnectionsToDraw: number
-    public connectionMode: boolean
-    private minBetweenness: number
-    private maxBetweenness: number
-    private minCloseness: number
-    private maxCloseness: number
-    public colorMode: EColorMode
-    private canvas: HTMLCanvasElement
+    public topTexture: WebGLTexture;
+    public inDrag: boolean;
+    public inTap: boolean;
+    public inDragStartTime: number;
+    public mouseIsOut: boolean;
+    public inSwipe: boolean;
+    public inTouchX: number;
+    public inTouchY: number;
+    public inTouchTime: number;
+    private icosaGeometry: WebGLBuffer;
+    private worldMapGeometry: WebGLBuffer;
+    private lineGeometry: WebGLBuffer;
+    private transformBuffer: WebGLBuffer;
+    private pickerBuffer: WebGLBuffer;
+    private connectionBuffer: WebGLBuffer;
+    private transformData: Float32Array;
+    private connectionData: Float32Array;
+    private icosaVao: WebGLVertexArrayObject;
+    private pickerVao: WebGLVertexArrayObject;
+    private worldMapVao: WebGLVertexArrayObject;
+    private connectionVao: WebGLVertexArrayObject;
+    public icosaVPLoc: WebGLUniformLocation;
+    public worldMapVPLoc: WebGLUniformLocation;
+    public connectionVPLoc: WebGLUniformLocation;
+    public paramsLoc: WebGLUniformLocation;
+    public noiseTextureLoc: WebGLUniformLocation;
+    public worldMapTextureLoc: WebGLUniformLocation;
+    public pickerVPLoc: WebGLUniformLocation;
+    public pickerParamsLoc: WebGLUniformLocation;
+    public pickerNoiseTextureLoc: WebGLUniformLocation;
+    private startTime: number;
+    private params: vec4;
+    private selectedId: number;
+    private white: vec4;;
+    private maxConnections: number;
+    private minConnections: number;
+    private drawConnections: boolean;
+    private numConnectionsToDraw: number;
+    public connectionMode: boolean;
+    private minBetweenness: number;
+    private maxBetweenness: number;
+    private minCloseness: number;
+    private maxCloseness: number;
+    public colorMode: EColorMode;
+    private canvas: HTMLCanvasElement;
+    private camera: PCamera;
 
-    public constructor(istate: IState, gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) {
+    public constructor(istate: IState, gl: WebGL2RenderingContext, canvas: HTMLCanvasElement, camera: PCamera) {
         this.istate = istate;
         this.canvas = canvas;
+        this.camera = camera;
         this.gl = gl;
         this.inDrag = false;
         this.mouseIsOut = true;
@@ -457,7 +460,7 @@ export class CWorld {
         let gl = this.gl;
         let id = 0
         for (let inode of this.istate.nodes) {
-            let node = new CNode(inode, id)
+            let node = new CNode(inode, id, this.camera)
             this.nodes.push(node);
             id++
         }
@@ -481,7 +484,7 @@ export class CWorld {
         let gl = this.gl
         gl.depthMask(false);
         gl.useProgram(glShaders[EShader.WorldMap]);
-        gl.uniformMatrix4fv(this.worldMapVPLoc, false, a.matViewProjection);
+        gl.uniformMatrix4fv(this.worldMapVPLoc, false, this.camera.matViewProjection);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.worldMapTexture);
         gl.uniform1i(this.worldMapTextureLoc, 0);
@@ -492,7 +495,7 @@ export class CWorld {
     renderConnections() {
         let gl = this.gl
         gl.useProgram(glShaders[EShader.Connection]);
-        gl.uniformMatrix4fv(this.connectionVPLoc, false, a.matViewProjection);
+        gl.uniformMatrix4fv(this.connectionVPLoc, false, this.camera.matViewProjection);
         gl.bindVertexArray(this.connectionVao);
         gl.drawArraysInstanced(gl.LINES, 0, 2, this.numConnectionsToDraw);
     }
@@ -501,7 +504,7 @@ export class CWorld {
         let gl = this.gl
         gl.depthMask(true);
         gl.useProgram(glShaders[EShader.Icosa]);
-        gl.uniformMatrix4fv(this.icosaVPLoc, false, a.matViewProjection);
+        gl.uniformMatrix4fv(this.icosaVPLoc, false, this.camera.matViewProjection);
         gl.uniform4fv(this.paramsLoc, this.params);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.noiseTexture);
@@ -523,7 +526,7 @@ export class CWorld {
     public renderPicker() {
         let gl = this.gl
         gl.useProgram(glShaders[EShader.Picker]);
-        gl.uniformMatrix4fv(this.pickerVPLoc, false, a.matViewProjection);
+        gl.uniformMatrix4fv(this.pickerVPLoc, false, this.camera.matViewProjection);
         gl.uniform4fv(this.pickerParamsLoc, this.params);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.noiseTexture);

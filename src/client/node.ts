@@ -4,25 +4,27 @@ import { INode, WORLD_WIDTH, WORLD_HEIGHT, EColorMode } from './core'
 import { a } from './globals'
 import { mat4, vec3, vec4 } from 'gl-matrix'
 import { idToColor, randomColor } from './util'
+import { PCamera } from './camera'
 
 export class CNode {
-    public inode: INode
-    public randomColor: vec4
-    public betweenColor: vec4
-    public closeColor: vec4
-    public degreeColor: vec4
-    public idColor: vec4
-    public id: number
-    public metadata: vec4
-    public info: vec4
-    public position: vec3
-    public center: vec3
-    public rotation: vec3
-    public matWorld: mat4
-    public matMV: mat4
-    public matMVP: mat4
-    public scale: number
-    public numConnections: number
+    public inode: INode;
+    public randomColor: vec4;
+    public betweenColor: vec4;
+    public closeColor: vec4;
+    public degreeColor: vec4;
+    public idColor: vec4;
+    public id: number;
+    public metadata: vec4;
+    public info: vec4;
+    public position: vec3;
+    public center: vec3;
+    public rotation: vec3;
+    public matWorld: mat4;
+    public matMV: mat4;
+    public matMVP: mat4;
+    public scale: number;
+    public numConnections: number;
+    private camera: PCamera;
 
 
     public release() {
@@ -89,11 +91,12 @@ export class CNode {
         )
     }
 
-    public constructor(inode: INode, id: number) {
+    public constructor(inode: INode, id: number, camera: PCamera) {
         this.inode = inode;
         this.id = id;
-        this.numConnections = this.inode.connections.length
-        let isLocalHost = inode.ip == "127.0.0.1"
+        this.camera = camera;
+        this.numConnections = this.inode.connections.length;
+        let isLocalHost = inode.ip == "127.0.0.1";
 
         this.metadata = vec4.create();
         this.randomColor = isLocalHost ? vec4.fromValues(1.0, 1.0, 1.0, 1) : randomColor();
@@ -142,7 +145,7 @@ export class CNode {
         mat4.multiply(this.matWorld, ry, this.matWorld)
         mat4.fromTranslation(t, this.position)
         mat4.multiply(this.matWorld, t, this.matWorld)
-        mat4.multiply(this.matMV, a.matView, this.matWorld)
-        mat4.multiply(this.matMVP, a.matProjection, this.matMV)
+        mat4.multiply(this.matMV, this.camera.matView, this.matWorld)
+        mat4.multiply(this.matMVP, this.camera.matProjection, this.matMV)
     }
 }

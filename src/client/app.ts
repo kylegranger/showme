@@ -1,21 +1,22 @@
 import { CShowme } from './showme'
-import { EKeyId } from './core'
 import { a } from './globals'
 import { mat4, vec3 } from 'gl-matrix'
 import { initShadersGl } from './shaders'
 import { IState } from './core'
 import { CMousekeyCtlr } from './mousekeyctlr'
 import { CWorld } from './world'
+import { PCamera } from './camera'
 
 export class CApp {
     public showme: CShowme;
-    private initialized: boolean
     private mousekey: CMousekeyCtlr
-    private startTime: number
-    private lastTime: number
-    private iter: number
-    public gl: WebGL2RenderingContext
+    private initialized: boolean;
+    private startTime: number;
+    private lastTime: number;
+    private iter: number;
+    public gl: WebGL2RenderingContext;
     private canvas: HTMLCanvasElement
+    private camera: PCamera;
 
 
 public constructor(canvas: HTMLCanvasElement) {
@@ -74,15 +75,22 @@ public constructor(canvas: HTMLCanvasElement) {
 
 async init(state: IState) {
     console.log('init: state ', state)
-    a.matView = mat4.create()
-    a.matProjection = mat4.create()
-    a.matViewProjection = mat4.create()
+
+    this.camera = new PCamera(0, 0, 1200, this.canvas)
+
     a.nodeScale = vec3.fromValues(1, 1, 1)
     this.initializeWebGl(this.gl)
-    a.world = new CWorld(state, this.gl, this.canvas);
+    a.world = new CWorld(state, this.gl, this.canvas, this.camera);
     a.world.initialize();
     this.initialized = true
     this.mousekey = new CMousekeyCtlr(this)
+
+    let temp = new CShowme(this.canvas, this.camera)
+    await temp.initialize(this.gl)
+    this.showme = temp
+
+
+
 }
 
 async initializeWebGl(gl: WebGL2RenderingContext) {
@@ -95,7 +103,6 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
         gl.enable(gl.CULL_FACE)
         gl.lineWidth(4.0);
         initShadersGl(gl)
-        await this.initShowme()
     }
 
     private updateFps() {
@@ -127,11 +134,11 @@ async initializeWebGl(gl: WebGL2RenderingContext) {
         }
     }
 
-    async initShowme() {
-        let temp = new CShowme(this.canvas)
-        await temp.initialize(this.gl)
-        this.showme = temp
-    }
+    // async initShowme() {
+    //     let temp = new CShowme(this.canvas)
+    //     await temp.initialize(this.gl)
+    //     this.showme = temp
+    // }
 
     readTextFile(file, callback) {
         var rawFile = new XMLHttpRequest();

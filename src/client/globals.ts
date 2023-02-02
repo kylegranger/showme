@@ -6,8 +6,6 @@ import { CWorld } from './world'
 
 export interface IGlobalInfo {
     world: CWorld
-    worldWidth: number
-    worldHeight: number
     matView: mat4
     matViewProjection: mat4
     matProjection: mat4
@@ -28,8 +26,6 @@ export interface IGlobalInfo {
 }
 
 export let a : IGlobalInfo= {
-    worldWidth: 0,
-    worldHeight: 0,
     matView: null,
     matProjection: null,
     matViewProjection: null,

@@ -9,6 +9,12 @@ export class PCamera {
     public x: number
     public y: number
     public z: number
+    worldWidth: number
+    worldHeight: number
+    matView: mat4
+    matViewProjection: mat4
+    matProjection: mat4
+
     public constructor(x: number, y: number, z: number, canvas: HTMLCanvasElement) {
         this.near = 16
         this.far = 4096
@@ -17,6 +23,9 @@ export class PCamera {
         this.z = z
         this.fovx = 60 * Math.PI / 180
         this.canvas = canvas
+        this.matView = mat4.create()
+        this.matProjection = mat4.create()
+        this.matViewProjection = mat4.create()
         this.update()
     }
 
@@ -25,15 +34,15 @@ export class PCamera {
 
     public update() : void {
         let aspect = this.canvas.width / this.canvas.height
-        a.worldWidth = this.z * 1 / 0.886
-        a.worldHeight = a.worldWidth / aspect
-        mat4.perspective(a.matProjection, this.fovx / aspect, aspect, this.near, this.far)
+        this.worldWidth = this.z * 1 / 0.886
+        this.worldHeight = this.worldWidth / aspect
+        mat4.perspective(this.matProjection, this.fovx / aspect, aspect, this.near, this.far)
         let rx = mat4.create()
         mat4.fromXRotation(rx, 0)
         let matWorld = mat4.create()
         mat4.translate(matWorld, matWorld, vec3.fromValues(this.x, this.y, this.z))
         mat4.multiply(matWorld, matWorld, rx)
-        mat4.invert(a.matView, matWorld)
-        mat4.multiply(a.matViewProjection, a.matProjection, a.matView)
+        mat4.invert(this.matView, matWorld)
+        mat4.multiply(this.matViewProjection, this.matProjection, this.matView)
     }
 }   

@@ -1,10 +1,7 @@
 
-import { a } from './globals';
 import { CApp } from './app'
 
 let app : CApp;
-
-
 
 function main() {
     app = new CApp(document.querySelector("#bancan"))
