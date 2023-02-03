@@ -128,7 +128,8 @@ const glslIcosa : IShader = {
     if (transformedUv.x < 0.0 || transformedUv.x > 1.0) {
         fragColor = vec4(0.0, 0.0, 0.0, 1.0);
     } else {
-        fragColor = texture(u_worldMapTexture, transformedUv);
+        vec4 pixel = texture(u_worldMapTexture, transformedUv);
+        fragColor = vec4(pixel.rgb * 0.6, 1.0);
     }
   }
   `
