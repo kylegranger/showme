@@ -1,5 +1,5 @@
 import { initShadersGl } from './shaders'
-import { IState } from './core'
+import { IState, EColorMode, INITIAL_CAMERA_Z } from './core'
 import { CMousekeyCtlr } from './mousekeyctlr'
 import { CWorld } from './world'
 import { PCamera } from './camera'
@@ -55,7 +55,7 @@ export class CApp {
 
     async init(state: IState) {
         console.log('init: state ', state);
-        this.camera = new PCamera(0, 0, 1200, this.canvas);
+        this.camera = new PCamera(0, 0, INITIAL_CAMERA_Z, this.canvas);
         this.initialize();
         this.initializeWebGl(this.gl);
         this.world = new CWorld(state, this.gl, this.canvas, this.camera);
@@ -125,11 +125,17 @@ export class CApp {
             }
             if (id == EKeyId.ToggleCommand && this.world) {
                 this.world.displayCommand = !this.world.displayCommand;
-                document.getElementById("instructions").style.visibility = this.world.displayCommand ? "hidden" : "visible";
+                console.log('displayCOmmand now ', this.world.displayCommand);
+                document.getElementById("instructions").style.visibility = this.world.displayCommand ? "visible" : "hidden";
             }
             if (id == EKeyId.ToggleFps && this.world) {
                 this.world.displayFps = !this.world.displayFps;
-                document.getElementById("overlayLeft").style.visibility = this.world.displayFps ? "hidden" : "visible";
+                document.getElementById("overlayLeft").style.visibility = this.world.displayFps ? "visible" : "hidden";
+            }
+            if (id == EKeyId.ToggleGradient && this.world) {
+                this.world.displayGradient = !this.world.displayGradient;
+                document.getElementById("gradient").style.visibility = this.world.colorMode != EColorMode.Random && this.world.displayGradient ? "visible" : "hidden";
+
             }
             if (id == EKeyId.ColorMode && this.world) {
                 this.world.cycleColorMode();
@@ -282,7 +288,7 @@ export class CApp {
             }
             this.camera.nodeScale = zoomLogToScale(this.zoomLogarithm);
             this.camera.z = Math.exp(this.zoomLogarithm)
-            // console.log(`Z ${this.camera.z}, log ${this.zoomLogarithm}`)
+            console.log(`Z ${this.camera.z}, log ${this.zoomLogarithm}`)
             this.camera.update()
         }
     }
@@ -297,7 +303,7 @@ export class CApp {
     }
 
     public async initialize() {
-        this.zoomLogarithm = Math.log(1200);
+        this.zoomLogarithm = Math.log(INITIAL_CAMERA_Z);
         this.camera.nodeScale = zoomLogToScale(this.zoomLogarithm);
         this.camera.update();
     }

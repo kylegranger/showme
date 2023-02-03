@@ -3,7 +3,7 @@
 const HEIGHT = 0.04;
 const LEFT = -0.4
 const RIGHT = 0.4;
-const TOP = -0.925
+const TOP = -0.87
 const BOTTOM = TOP - HEIGHT;
 const positions = [
     // top left

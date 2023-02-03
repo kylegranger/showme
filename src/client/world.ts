@@ -70,6 +70,7 @@ export class CWorld {
     public connectionMode: boolean;
     public displayCommand: boolean;
     public displayFps: boolean;
+    public displayGradient: boolean;
     private minBetweenness: number;
     private maxBetweenness: number;
     private minCloseness: number;
@@ -77,6 +78,9 @@ export class CWorld {
     public colorMode: EColorMode;
     private canvas: HTMLCanvasElement;
     private camera: PCamera;
+    private betweennessDescription: string;
+    private closenessDescription: string;
+    private degreeDescription: string;
 
     public timeNode: Text;
     public fpsNode: Text;
@@ -91,6 +95,7 @@ export class CWorld {
     public positionNode: Text;
     public heightNode: Text;
     public colorModeNode: Text;
+    public gradientNode: Text;
 
 
     private initTextNodes() {
@@ -109,8 +114,9 @@ export class CWorld {
         this.cityNode = document.createTextNode("");
         this.countryNode = document.createTextNode("");
         this.colorModeNode = document.createTextNode("");
+        this.gradientNode = document.createTextNode("");
 
-        this.colorModeNode.nodeValue = 'random'
+        this.updateColorDisplay();
 
         // Add those text nodes where they need to go
         document.querySelector("#time").appendChild(this.timeNode);
@@ -126,6 +132,7 @@ export class CWorld {
         document.querySelector("#city").appendChild(this.cityNode);
         document.querySelector("#country").appendChild(this.countryNode);
         document.querySelector("#colormode").appendChild(this.colorModeNode);
+        document.querySelector("#gradient").appendChild(this.gradientNode);
         document.getElementById("overlayRight").style.visibility = "hidden";
     }
 
@@ -148,6 +155,8 @@ export class CWorld {
         this.numConnectionsToDraw = 0;
         this.connectionMode = false;
         this.displayCommand = true;
+        this.displayFps = true;
+        this.displayGradient = true;
         this.minBetweenness = 100;
         this.maxBetweenness = 0;
         this.minCloseness = 100;
@@ -164,26 +173,37 @@ export class CWorld {
         }
     }
 
-    public cycleColorMode() {
-        this.colorMode++;
-        if (this.colorMode == EColorMode.Last) {
-            this.colorMode = EColorMode.Random;
-        }
+    public updateColorDisplay() {
         switch (this.colorMode) {
             case EColorMode.Random:
                 this.colorModeNode.nodeValue = 'random'
                 break;
             case EColorMode.Between:
                 this.colorModeNode.nodeValue = 'betweenness'
+                // this.gradientNode.nodeValue = this.betweennessDescription;
+                document.getElementById("gradient").textContent = this.betweennessDescription;
                 break;
             case EColorMode.Close:
                 this.colorModeNode.nodeValue = 'closeness'
+                // this.gradientNode.nodeValue = this.closenessDescription;
+                document.getElementById("gradient").textContent = this.closenessDescription;
                 break;
             case EColorMode.Degree:
                 this.colorModeNode.nodeValue = 'degree'
+                // this.gradientNode.nodeValue = this.degreeDescription;
+                document.getElementById("gradient").textContent = this.degreeDescription;
                 break;
-            }
+        }
         this.updateNodeColors();
+        document.getElementById("gradient").style.visibility = this.colorMode != EColorMode.Random && this.displayGradient ? "visible" : "hidden";
+    }
+
+    public cycleColorMode() {
+        this.colorMode++;
+        if (this.colorMode == EColorMode.Last) {
+            this.colorMode = EColorMode.Random;
+        }
+        this.updateColorDisplay();
     }
 
     public update() {
@@ -529,6 +549,16 @@ export class CWorld {
         }
     }
 
+    private setDescriptions() {
+        this.betweennessDescription = 'MIN: ' + this.minBetweenness.toFixed(6) + ' ---- BETWEENNESS ---- MAX: ' + this.maxBetweenness.toFixed(6);
+        this.closenessDescription = 'MIN: ' + this.minCloseness.toFixed(4) +     ' ----- CLOSENESS ----- MAX: ' + this.maxCloseness.toFixed(4);
+        this.degreeDescription = 'MIN: ' + this.minConnections +                    ' ------- DEGREE ------ MAX: ' + this.maxConnections;
+        console.log(this.betweennessDescription);
+        console.log(this.closenessDescription);
+        console.log(this.degreeDescription);
+    
+    }
+
     public async initialize() {
         console.log('world::initialize, num nodes: ' + this.istate.agraph_length);
         let gl = this.gl;
@@ -542,10 +572,8 @@ export class CWorld {
         for (let inode of this.istate.nodes) {
             this.updateStats(inode);
         }
-        console.log('minBetweenness: ', this.minBetweenness);
-        console.log('maxBetweenness: ', this.maxBetweenness);
-        console.log('minCloseness: ', this.minCloseness);
-        console.log('maxCloseness: ', this.maxCloseness);
+
+        this.setDescriptions();
         this.setAuxColors();
         await this.initTexturesGl();
         this.initNodesGl();
@@ -607,7 +635,7 @@ export class CWorld {
             this.renderConnections()
         }
         this.renderNodes()
-        if (this.colorMode != EColorMode.Random) {
+        if (this.colorMode != EColorMode.Random && this.displayGradient) {
             this.renderGradient();
         }
     }
