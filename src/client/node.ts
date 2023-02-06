@@ -2,12 +2,11 @@
 
 import { INode, WORLD_WIDTH, WORLD_HEIGHT, EColorMode } from './core'
 import { mat4, vec3, vec4 } from 'gl-matrix'
-import { idToColor, randomColor } from './util'
+import { idToColor } from './util'
 import { PCamera } from './camera'
 
 export class CNode {
     public inode: INode;
-    public randomColor: vec4;
     public betweenColor: vec4;
     public closeColor: vec4;
     public degreeColor: vec4;
@@ -51,9 +50,7 @@ export class CNode {
     }
 
     public getCurrentColor(colorMode: EColorMode) : vec4 {
-        if (colorMode == EColorMode.Random) {
-            return this.randomColor;
-        } else if (colorMode == EColorMode.Between) {
+        if (colorMode == EColorMode.Between) {
             return this.betweenColor;
         } else if (colorMode == EColorMode.Degree) {
             return this.degreeColor;
@@ -95,7 +92,6 @@ export class CNode {
         let isLocalHost = inode.ip == "127.0.0.1";
 
         this.metadata = vec4.create();
-        this.randomColor = isLocalHost ? vec4.fromValues(1.0, 1.0, 1.0, 1) : randomColor();
         this.idColor = idToColor(id);
         this.scale = isLocalHost ? 4 : 1;
         if (isLocalHost) {

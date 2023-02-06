@@ -14,8 +14,7 @@ export enum EShader {
 }
 
 export enum EColorMode {
-    Random = 0,
-    Between,
+    Between = 0,
     Close,
     Degree,
     Last

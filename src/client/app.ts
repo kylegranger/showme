@@ -134,7 +134,7 @@ export class CApp {
             }
             if (id == EKeyId.ToggleGradient && this.world) {
                 this.world.displayGradient = !this.world.displayGradient;
-                document.getElementById("gradient").style.visibility = this.world.colorMode != EColorMode.Random && this.world.displayGradient ? "visible" : "hidden";
+                document.getElementById("gradient").style.visibility = this.world.displayGradient ? "visible" : "hidden";
 
             }
             if (id == EKeyId.ColorMode && this.world) {

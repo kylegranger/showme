@@ -161,7 +161,7 @@ export class CWorld {
         this.maxBetweenness = 0;
         this.minCloseness = 100;
         this.maxCloseness = 0;
-        this.colorMode = EColorMode.Random
+        this.colorMode = EColorMode.Degree
         this.initTextNodes();
     };
 
@@ -175,9 +175,6 @@ export class CWorld {
 
     public updateColorDisplay() {
         switch (this.colorMode) {
-            case EColorMode.Random:
-                this.colorModeNode.nodeValue = 'random'
-                break;
             case EColorMode.Between:
                 this.colorModeNode.nodeValue = 'betweenness'
                 // this.gradientNode.nodeValue = this.betweennessDescription;
@@ -195,13 +192,13 @@ export class CWorld {
                 break;
         }
         this.updateNodeColors();
-        document.getElementById("gradient").style.visibility = this.colorMode != EColorMode.Random && this.displayGradient ? "visible" : "hidden";
+        document.getElementById("gradient").style.visibility = this.displayGradient ? "visible" : "hidden";
     }
 
     public cycleColorMode() {
         this.colorMode++;
         if (this.colorMode == EColorMode.Last) {
-            this.colorMode = EColorMode.Random;
+            this.colorMode = EColorMode.Between;
         }
         this.updateColorDisplay();
     }
@@ -267,7 +264,7 @@ export class CWorld {
         this.transformData = new Float32Array(this.istate.agraph_length * NODE_TRANSFORM_SIZE);
         let n: number = 0;
         for (let node of this.nodes) {
-            this.transformData.set(node.randomColor, n);
+            this.transformData.set(node.degreeColor, n);
             this.transformData.set(node.metadata, n+4);
             this.transformData.set(node.idColor, n+8);
             this.transformData.set(node.matWorld, n+12);
@@ -296,7 +293,7 @@ export class CWorld {
         console.log('  num_connections : ', node.numConnections);
         for (let index of node.inode.connections) {
             let conn: CNode = this.nodes[index];
-            this.connectionData.set(conn.randomColor, n);
+            this.connectionData.set(conn.getCurrentColor(this.colorMode), n);
             this.connectionData.set(node.position, n+4);
             let delta: vec3 = vec3.create();
             vec3.sub(delta, conn.position, node.position);
@@ -635,7 +632,7 @@ export class CWorld {
             this.renderConnections()
         }
         this.renderNodes()
-        if (this.colorMode != EColorMode.Random && this.displayGradient) {
+        if (this.displayGradient) {
             this.renderGradient();
         }
     }
