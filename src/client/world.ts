@@ -1,12 +1,14 @@
 /// <reference path="../../node_modules/@webgpu/types/dist/index.d.ts" />
 
-import { IState, EShader, INode, EColorMode } from './core'
+import { IState, EShader, INode, EColorMode, ENodeType } from './core'
 import { CNode } from './node'
 import { vec2, vec3, vec4, mat4 } from 'gl-matrix'
 import { icosaGeometry } from './geomicosa'
 import { gradientGeometry } from './geomgradient'
+import { cubeGeometry } from './geomcube'
 import { lineGeometry } from './geomline'
 import { CPicker } from './picker';
+import { CGroup } from './group';
 import { PCamera } from './camera';
 import { initWorldMap } from './worldmap'
 import { glShaders } from './shaders';
@@ -20,6 +22,9 @@ const CONNECTION_TRANSFORM_SIZE: number = 12;
 export class CWorld {
     public istate: IState;
     public nodes: CNode [];
+    public singleNodes: CNode [];
+    public superMap: Map<string, CNode>;
+    public superNodes: CNode [];
     public  gl: WebGL2RenderingContext;
     private noiseTexture: WebGLTexture;
     private worldMapTexture: WebGLTexture;
@@ -36,16 +41,35 @@ export class CWorld {
     public inTouchY: number;
     public inTouchTime: number;
     private icosaGeometry: WebGLBuffer;
+    private cubeGeometry: WebGLBuffer;
     private gradientGeometry: WebGLBuffer;
     private worldMapGeometry: WebGLBuffer;
     private lineGeometry: WebGLBuffer;
-    private transformBuffer: WebGLBuffer;
-    private pickerBuffer: WebGLBuffer;
+
+    private mainSingleGroup: CGroup;
+    private mainSuperGroup: CGroup;
+    private mainSubGroup: CGroup;
+
+    private pickerSingleGroup: CGroup;
+    private pickerSuperGroup: CGroup;
+    private pickerSubGroup: CGroup;
+
+    // private singleNodeBuffer: WebGLBuffer;
+    // private superNodeBuffer: WebGLBuffer;
+    // private subNodeBuffer: WebGLBuffer;
+    // private pickerSingleNodeBuffer: WebGLBuffer;
+    // private pickerSuperNodeBuffer: WebGLBuffer;
+    // private pickerSubNodeBuffer: WebGLBuffer;
     private connectionBuffer: WebGLBuffer;
-    private transformData: Float32Array;
+    // private singleNodeData: Float32Array;
+    // private superNodeData: Float32Array;
+    // private subNodeData: Float32Array;
+    private subNodes: CNode [];
     private connectionData: Float32Array;
-    private icosaVao: WebGLVertexArrayObject;
-    private pickerVao: WebGLVertexArrayObject;
+    // private singleNodeVao: WebGLVertexArrayObject;
+    // private superNodeVao: WebGLVertexArrayObject;
+    // private subNodeVao: WebGLVertexArrayObject;
+    // private pickerVao: WebGLVertexArrayObject;
     private worldMapVao: WebGLVertexArrayObject;
     private gradientVao: WebGLVertexArrayObject;
     private connectionVao: WebGLVertexArrayObject;
@@ -65,6 +89,7 @@ export class CWorld {
     private white: vec4;;
     private maxConnections: number;
     private minConnections: number;
+    private maxSubnodes: number;
     private drawConnections: boolean;
     private numConnectionsToDraw: number;
     public connectionMode: boolean;
@@ -96,6 +121,7 @@ export class CWorld {
     public heightNode: Text;
     public colorModeNode: Text;
     public gradientNode: Text;
+    public initialized: boolean;
 
 
     private initTextNodes() {
@@ -140,10 +166,14 @@ export class CWorld {
         this.istate = istate;
         this.canvas = canvas;
         this.camera = camera;
+        // this.selectedNode = null;
         this.gl = gl;
         this.inDrag = false;
         this.mouseIsOut = true;
         this.nodes = new Array();
+        this.singleNodes = new Array();
+        this.superNodes = new Array();
+        this.superMap = new Map();
         this.startTime = Date.now();
         this.params = vec4.create();
         this.picker = new CPicker(gl);
@@ -163,13 +193,30 @@ export class CWorld {
         this.maxCloseness = 0;
         this.colorMode = EColorMode.Degree
         this.initTextNodes();
+        this.initialized = false;
+        this.mainSingleGroup = new CGroup();
+        this.pickerSingleGroup = new CGroup();
+        this.mainSuperGroup = new CGroup();
+        this.pickerSuperGroup = new CGroup();
+        this.mainSubGroup = new CGroup();
+        this.pickerSubGroup = new CGroup();
+        this.subNodes = null;
+        this.maxSubnodes = 0;
+
     };
 
     private updateNodeColors() {
         let n: number = 0;
-        for (let node of this.nodes) {
-            this.transformData.set(node.getCurrentColor(this.colorMode), n);
-            n += NODE_TRANSFORM_SIZE
+        for (let node of this.singleNodes) {
+            this.mainSingleGroup.transformData.set(node.getCurrentColor(this.colorMode), n);
+            n += NODE_TRANSFORM_SIZE;
+        }
+        n = 0;
+        if (this.subNodes) {
+            for (let node of this.subNodes) {
+                this.mainSubGroup.transformData.set(node.getCurrentColor(this.colorMode), n);
+                n += NODE_TRANSFORM_SIZE;
+            }
         }
     }
 
@@ -203,8 +250,16 @@ export class CWorld {
         this.updateColorDisplay();
     }
 
+    public getNode(id: number) : CNode {
+        if (id < this.istate.agraph_length) {
+            return this.nodes[id];
+        } else {
+            return this.superNodes[id-this.istate.agraph_length];
+        }
+    }
+
     public update() {
-        if (!this.transformData) {
+        if (!this.mainSingleGroup) {
             return;
         }
         // let now = Date.now();
@@ -212,9 +267,14 @@ export class CWorld {
             node.incRotationY(2 * Math.PI / 180 * node.numConnections / 400);
             node.updateMatrix();
         }
-        this.updateTransformData();
-        // let done = Date.now();
-        // console.log(`now ${now} done ${done} delta ${done-now}`)
+        for (let node of this.superNodes) {
+            node.incRotationY(2 * Math.PI / 180 * (0.36 + node.inode.cell_height/800));
+            node.updateMatrix();
+        }
+        this.updateSingleNodeData();
+        this.updateSuperNodeData();
+        this.updateSubNodeData();
+        this.updatePickerData();
     }
 
     public handleClick(x: number, y: number) {
@@ -225,16 +285,16 @@ export class CWorld {
         let id = this.picker.postRender();
         console.log(`  got id ${id}`)
         if (id >= 0) {
-            let node = this.nodes[id];
+            let node = this.getNode(id);
             this.ipNode.nodeValue = node.inode.ip;
-            this.betweennessNode.nodeValue = node.inode.betweenness.toFixed(6);
-            this.closenessNode.nodeValue = node.inode.closeness.toFixed(6);
-            this.connectionsNode.nodeValue = node.numConnections.toString();
+            this.betweennessNode.nodeValue = node.nodeType != ENodeType.Super ? node.inode.betweenness.toFixed(6) : '--';
+            this.closenessNode.nodeValue = node.nodeType != ENodeType.Super ? node.inode.closeness.toFixed(6) : '--';
+            this.connectionsNode.nodeValue = node.nodeType != ENodeType.Super ? node.numConnections.toString() : '--';
             this.latitudeNode.nodeValue = node.inode.geolocation.latitude.toFixed(4);
             this.longitudeNode.nodeValue = node.inode.geolocation.longitude.toFixed(4);
-            this.cityNode.nodeValue = node.inode.geolocation.city;
+            this.cityNode.nodeValue = 'x' + node.subnodeOffset[0].toFixed(2) + 'y' + node.subnodeOffset[1].toFixed(2) + 'z' + node.subnodeOffset[2].toFixed(2);
             this.countryNode.nodeValue = node.inode.geolocation.country;
-            this.positionNode.nodeValue = node.inode.cell_position.toString();
+            this.positionNode.nodeValue = node.nodeType != ENodeType.Super ? node.inode.cell_position.toString() : '--';
             this.heightNode.nodeValue = node.inode.cell_height.toString();
             document.getElementById("overlayRight").style.visibility = "visible";
         } else {
@@ -243,39 +303,109 @@ export class CWorld {
         if (id != this.selectedId) {
             if (this.selectedId != -1) {
                 // restore color
-                this.transformData.set(this.nodes[this.selectedId].getCurrentColor(this.colorMode), this.selectedId*NODE_TRANSFORM_SIZE);
+                let node = this.getNode(this.selectedId);
+                if (node.nodeType == ENodeType.Single) {
+                    this.mainSingleGroup.transformData.set(this.singleNodes[node.index].getCurrentColor(this.colorMode), node.index*NODE_TRANSFORM_SIZE);
+                } else if (node.nodeType == ENodeType.Super) {
+                    this.mainSuperGroup.transformData.set(this.superNodes[node.index].getCurrentColor(this.colorMode), node.index*NODE_TRANSFORM_SIZE);
+                } else if (node.nodeType == ENodeType.Sub) {
+                    this.mainSubGroup.transformData.set(this.subNodes[node.index].getCurrentColor(this.colorMode), node.index*NODE_TRANSFORM_SIZE);
+                }
             }
             if (id != -1) {
-                // set new selection to white
-                let node: CNode = this.nodes[id];
-                this.transformData.set(this.white, id*NODE_TRANSFORM_SIZE);
+                let node = this.getNode(id);
+                if (node.nodeType == ENodeType.Single) {
+                    this.mainSingleGroup.transformData.set(this.white, node.index*NODE_TRANSFORM_SIZE);
+                    this.subNodes = null;
+                } else if (node.nodeType == ENodeType.Super) {
+                    this.mainSuperGroup.transformData.set(this.white, node.index*NODE_TRANSFORM_SIZE);
+                    this.subNodes = null;
+                } else if (node.nodeType == ENodeType.Sub) {
+                    this.mainSubGroup.transformData.set(this.white, node.index*NODE_TRANSFORM_SIZE);
+                }
+
                 this.setConnectionData(node);
                 this.numConnectionsToDraw = node.numConnections;
                 this.drawConnections = true;
             } else {
                 this.drawConnections = false;
+                this.subNodes = null;
             }
             this.selectedId = id
+        } else {
+            if (this.selectedId != -1) {
+                let node = this.getNode(this.selectedId);
+                if (node.nodeType == ENodeType.Super) {
+                    this.subNodes = node.subNodes;
+                    this.updateNodeColors();
+                    let n = 0;
+                    for (let node of this.subNodes) {
+                        this.mainSubGroup.transformData.set(node.degreeColor, n);
+                        this.mainSubGroup.transformData.set(node.metadata, n+4);
+                        this.mainSubGroup.transformData.set(node.idColor, n+8);
+                        this.mainSubGroup.transformData.set(node.matWorld, n+12);
+                        n += NODE_TRANSFORM_SIZE
+                    }
+                    console.log('new subnodes has length ', this.subNodes.length);
+                }
+            }
         }
     }
 
     private initTransformData() {
         let gl = this.gl;
-        this.transformData = new Float32Array(this.istate.agraph_length * NODE_TRANSFORM_SIZE);
+
+        this.mainSingleGroup.transformData = new Float32Array(this.singleNodes.length * NODE_TRANSFORM_SIZE);
         let n: number = 0;
-        for (let node of this.nodes) {
-            this.transformData.set(node.degreeColor, n);
-            this.transformData.set(node.metadata, n+4);
-            this.transformData.set(node.idColor, n+8);
-            this.transformData.set(node.matWorld, n+12);
+        for (let node of this.singleNodes) {
+            this.mainSingleGroup.transformData.set(node.degreeColor, n);
+            this.mainSingleGroup.transformData.set(node.metadata, n+4);
+            this.mainSingleGroup.transformData.set(node.idColor, n+8);
+            this.mainSingleGroup.transformData.set(node.matWorld, n+12);
             n += NODE_TRANSFORM_SIZE
         }
-        this.transformBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
-        this.pickerBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
+        this.mainSingleGroup.transformBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSingleGroup.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.mainSingleGroup.transformData, gl.STATIC_DRAW);
+        this.pickerSingleGroup.transformBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSingleGroup.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.mainSingleGroup.transformData, gl.STATIC_DRAW);
+
+        this.mainSuperGroup.transformData = new Float32Array(this.superNodes.length * NODE_TRANSFORM_SIZE);
+        console.log('superNodes size ',this.superNodes.length);
+        n = 0;
+        for (let node of this.superNodes) {
+            this.mainSuperGroup.transformData.set(node.degreeColor, n);
+            this.mainSuperGroup.transformData.set(node.metadata, n+4);
+            this.mainSuperGroup.transformData.set(node.idColor, n+8);
+            this.mainSuperGroup.transformData.set(node.matWorld, n+12);
+            n += NODE_TRANSFORM_SIZE;
+        }
+
+        // //for (let node of this.superNodes.) {
+        //     this.mainSuperGroup.transformData.set(node.degreeColor, n);
+        //     this.mainSuperGroup.transformData.set(node.metadata, n+4);
+        //     this.mainSuperGroup.transformData.set(node.idColor, n+8);
+        //     this.mainSuperGroup.transformData.set(node.matWorld, n+12);
+        //     n += NODE_TRANSFORM_SIZE
+        // }
+        this.mainSuperGroup.transformBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSuperGroup.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.mainSuperGroup.transformData, gl.STATIC_DRAW);
+        this.pickerSuperGroup.transformBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSuperGroup.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.mainSuperGroup.transformData, gl.STATIC_DRAW);
+
+
+        this.mainSubGroup.transformData = new Float32Array(this.maxSubnodes * NODE_TRANSFORM_SIZE);
+        console.log('this.maxSubnodes ', this.maxSubnodes)
+        this.mainSubGroup.transformBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSubGroup.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.mainSubGroup.transformData, gl.STATIC_DRAW);
+        this.pickerSubGroup.transformBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSubGroup.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.mainSubGroup.transformData, gl.STATIC_DRAW);
+
     }
 
     private initConnectionData(maxConnections: number) {
@@ -287,33 +417,72 @@ export class CWorld {
     }
 
     private setConnectionData(node: CNode) {
-        console.log('setConnectionData, node ', node.id);
-        let gl = this.gl;
-        let n: number = 0;
-        console.log('  num_connections : ', node.numConnections);
-        for (let index of node.inode.connections) {
-            let conn: CNode = this.nodes[index];
-            this.connectionData.set(conn.getCurrentColor(this.colorMode), n);
-            this.connectionData.set(node.position, n+4);
-            let delta: vec3 = vec3.create();
-            vec3.sub(delta, conn.position, node.position);
-            this.connectionData.set(delta, n+8);
-            n += 12;
-        }
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.connectionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, this.connectionData, gl.STATIC_DRAW);
+        // console.log('setConnectionData, node ', node.id);
+        // let gl = this.gl;
+        // let n: number = 0;
+        // console.log('  num_connections : ', node.numConnections);
+        // for (let index of node.inode.connections) {
+        //     let conn: CNode = this.nodes[index];
+        //     this.connectionData.set(conn.getCurrentColor(this.colorMode), n);
+        //     this.connectionData.set(node.position, n+4);
+        //     let delta: vec3 = vec3.create();
+        //     vec3.sub(delta, conn.position, node.position);
+        //     this.connectionData.set(delta, n+8);
+        //     n += 12;
+        // }
+        // gl.bindBuffer(gl.ARRAY_BUFFER, this.connectionBuffer);
+        // gl.bufferData(gl.ARRAY_BUFFER, this.connectionData, gl.STATIC_DRAW);
     }
 
-    private updateTransformData() {
+    private updateSingleNodeData() {
         let gl = this.gl
         let n: number = 12;
-        for (let node of this.nodes) {
-            this.transformData.set(node.matWorld, n);
+        for (let node of this.singleNodes) {
+            this.mainSingleGroup.transformData.set(node.matWorld, n);
             n += 28
         }
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSingleGroup.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.mainSingleGroup.transformData, gl.STATIC_DRAW);
     }
+
+    private updateSuperNodeData() {
+        let gl = this.gl
+        let n: number = 12;
+        for (let node of this.superNodes) {
+            this.mainSuperGroup.transformData.set(node.matWorld, n);
+            n += 28
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSuperGroup.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.mainSuperGroup.transformData, gl.STATIC_DRAW);
+    }
+
+    private updateSubNodeData() {
+        let gl = this.gl
+        if (!this.subNodes) return;
+
+        let n: number = 12;
+        for (let node of this.subNodes) {
+            this.mainSubGroup.transformData.set(node.matWorld, n);
+            n += 28
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSubGroup.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.mainSubGroup.transformData, gl.STATIC_DRAW);
+    }
+
+    private updatePickerData() {
+        let gl = this.gl
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSingleGroup.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.mainSingleGroup.transformData, gl.STATIC_DRAW);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSuperGroup.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.mainSuperGroup.transformData, gl.STATIC_DRAW);
+        if (!this.subNodes) return;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSubGroup.transformBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.mainSubGroup.transformData, gl.STATIC_DRAW);
+    }
+
+
 
     private initNodesGl() {
         let gl = this.gl;
@@ -332,12 +501,13 @@ export class CWorld {
         console.log('icosa metadataLoc ', metadataLoc)
         console.log('icosa normalLoc ', normalLoc)
 
-        this.icosaGeometry = icosaGeometry(gl)
-        this.icosaVao = gl.createVertexArray();
-        gl.bindVertexArray(this.icosaVao);
+        this.icosaGeometry = icosaGeometry(gl);
+        this.cubeGeometry = cubeGeometry(gl);
 
         this.initTransformData();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.transformBuffer);
+        this.mainSingleGroup.vao = gl.createVertexArray();
+        gl.bindVertexArray(this.mainSingleGroup.vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSingleGroup.transformBuffer);
         gl.enableVertexAttribArray(colorLoc);
         gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 0);
         gl.enableVertexAttribArray(metadataLoc);
@@ -364,6 +534,65 @@ export class CWorld {
         gl.enableVertexAttribArray(normalLoc);
         gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 24, 12);
 
+        this.mainSuperGroup.vao = gl.createVertexArray();
+        gl.bindVertexArray(this.mainSuperGroup.vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSuperGroup.transformBuffer);
+        gl.enableVertexAttribArray(colorLoc);
+        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 0);
+        gl.enableVertexAttribArray(metadataLoc);
+        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
+        gl.enableVertexAttribArray(modelLoc);
+        gl.vertexAttribPointer(modelLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
+        gl.enableVertexAttribArray(modelLoc+1);
+        gl.vertexAttribPointer(modelLoc+1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
+        gl.enableVertexAttribArray(modelLoc+2);
+        gl.vertexAttribPointer(modelLoc+2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
+        gl.enableVertexAttribArray(modelLoc+3);
+        gl.vertexAttribPointer(modelLoc+3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
+
+        gl.vertexAttribDivisor(modelLoc,1);
+        gl.vertexAttribDivisor(modelLoc+1,1);
+        gl.vertexAttribDivisor(modelLoc+2,1);
+        gl.vertexAttribDivisor(modelLoc+3,1);
+        gl.vertexAttribDivisor(colorLoc,1);
+        gl.vertexAttribDivisor(metadataLoc,1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeGeometry);
+        gl.enableVertexAttribArray(positionLoc);
+        gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
+        gl.enableVertexAttribArray(normalLoc);
+        gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 24, 12);
+
+        this.mainSubGroup.vao = gl.createVertexArray();
+        gl.bindVertexArray(this.mainSubGroup.vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSubGroup.transformBuffer);
+        gl.enableVertexAttribArray(colorLoc);
+        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 0);
+        gl.enableVertexAttribArray(metadataLoc);
+        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
+        gl.enableVertexAttribArray(modelLoc);
+        gl.vertexAttribPointer(modelLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
+        gl.enableVertexAttribArray(modelLoc+1);
+        gl.vertexAttribPointer(modelLoc+1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
+        gl.enableVertexAttribArray(modelLoc+2);
+        gl.vertexAttribPointer(modelLoc+2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
+        gl.enableVertexAttribArray(modelLoc+3);
+        gl.vertexAttribPointer(modelLoc+3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
+
+        gl.vertexAttribDivisor(modelLoc,1);
+        gl.vertexAttribDivisor(modelLoc+1,1);
+        gl.vertexAttribDivisor(modelLoc+2,1);
+        gl.vertexAttribDivisor(modelLoc+3,1);
+        gl.vertexAttribDivisor(colorLoc,1);
+        gl.vertexAttribDivisor(metadataLoc,1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.icosaGeometry);
+        gl.enableVertexAttribArray(positionLoc);
+        gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
+        gl.enableVertexAttribArray(normalLoc);
+        gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 24, 12);
+
+
     }
 
     private initPickerGl() {
@@ -380,10 +609,65 @@ export class CWorld {
         console.log('picker pickerColorLoc ', pickerColorLoc)
         console.log('picker metadataLoc ', metadataLoc)
         console.log('picker modelLoc ', modelLoc)
-        this.pickerVao = gl.createVertexArray();
-        gl.bindVertexArray(this.pickerVao);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerBuffer);
+        this.pickerSingleGroup.vao = gl.createVertexArray();
+        gl.bindVertexArray(this.pickerSingleGroup.vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSingleGroup.transformBuffer);
+        gl.enableVertexAttribArray(metadataLoc);
+        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
+        gl.enableVertexAttribArray(pickerColorLoc);
+        gl.vertexAttribPointer(pickerColorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 32);
+        gl.enableVertexAttribArray(modelLoc);
+        gl.vertexAttribPointer(modelLoc+0, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
+        gl.enableVertexAttribArray(modelLoc+1);
+        gl.vertexAttribPointer(modelLoc+1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
+        gl.enableVertexAttribArray(modelLoc+2);
+        gl.vertexAttribPointer(modelLoc+2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
+        gl.enableVertexAttribArray(modelLoc+3);
+        gl.vertexAttribPointer(modelLoc+3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
+
+        gl.vertexAttribDivisor(modelLoc+0,1);
+        gl.vertexAttribDivisor(modelLoc+1,1);
+        gl.vertexAttribDivisor(modelLoc+2,1);
+        gl.vertexAttribDivisor(modelLoc+3,1);
+        gl.vertexAttribDivisor(pickerColorLoc,1);
+        gl.vertexAttribDivisor(metadataLoc,1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.icosaGeometry);
+        gl.enableVertexAttribArray(positionLoc);
+        gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
+
+        // new
+        this.pickerSuperGroup.vao = gl.createVertexArray();
+        gl.bindVertexArray(this.pickerSuperGroup.vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSuperGroup.transformBuffer);
+        gl.enableVertexAttribArray(metadataLoc);
+        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
+        gl.enableVertexAttribArray(pickerColorLoc);
+        gl.vertexAttribPointer(pickerColorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 32);
+        gl.enableVertexAttribArray(modelLoc);
+        gl.vertexAttribPointer(modelLoc+0, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
+        gl.enableVertexAttribArray(modelLoc+1);
+        gl.vertexAttribPointer(modelLoc+1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
+        gl.enableVertexAttribArray(modelLoc+2);
+        gl.vertexAttribPointer(modelLoc+2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
+        gl.enableVertexAttribArray(modelLoc+3);
+        gl.vertexAttribPointer(modelLoc+3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
+
+        gl.vertexAttribDivisor(modelLoc+0,1);
+        gl.vertexAttribDivisor(modelLoc+1,1);
+        gl.vertexAttribDivisor(modelLoc+2,1);
+        gl.vertexAttribDivisor(modelLoc+3,1);
+        gl.vertexAttribDivisor(pickerColorLoc,1);
+        gl.vertexAttribDivisor(metadataLoc,1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeGeometry);
+        gl.enableVertexAttribArray(positionLoc);
+        gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
+
+        this.pickerSubGroup.vao = gl.createVertexArray();
+        gl.bindVertexArray(this.pickerSubGroup.vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSubGroup.transformBuffer);
         gl.enableVertexAttribArray(metadataLoc);
         gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
         gl.enableVertexAttribArray(pickerColorLoc);
@@ -553,7 +837,12 @@ export class CWorld {
         console.log(this.betweennessDescription);
         console.log(this.closenessDescription);
         console.log(this.degreeDescription);
-    
+    }
+
+    private createGeoString(lat: number, long: number) : string {
+        const DEGREE_RESOLUTION: number = 1.0 / 0.2;
+        let result: string = Math.floor(lat * DEGREE_RESOLUTION).toString() + ':' + Math.floor(long * DEGREE_RESOLUTION).toString();
+        return result;
     }
 
     public async initialize() {
@@ -561,8 +850,34 @@ export class CWorld {
         let gl = this.gl;
         let id = 0;
         for (let inode of this.istate.nodes) {
-            let node = new CNode(inode, id, this.camera)
-            this.nodes.push(node);
+            let geostr: string = this.createGeoString(inode.geolocation.latitude, inode.geolocation.longitude);
+            if (inode.cell_position == 1) {
+                if (inode.cell_height > 1) {
+                    // new super node
+                    let superNode = new CNode(inode, this.istate.agraph_length+this.superNodes.length, this.superNodes.length, this.camera, ENodeType.Super, null);
+                    // make super nodes magenta
+                    superNode.degreeColor = vec4.fromValues(0.9, 0.0, 0.9, 1.0);
+
+                    this.superMap.set(geostr,superNode);
+                    this.superNodes.push(superNode);
+                    let node = new CNode(inode, id, superNode.subNodes.length, this.camera, ENodeType.Sub, superNode);
+                    this.nodes.push(node);
+                    superNode.subNodes.push(node);
+                 } else {
+                    // new single node
+                    let node = new CNode(inode, id, this.singleNodes.length, this.camera, ENodeType.Single, null);
+                    this.nodes.push(node);
+                    this.singleNodes.push(node);
+                }
+            } else {
+                let superNode = this.superMap.get(geostr);
+                let node = new CNode(inode, id, superNode.subNodes.length, this.camera, ENodeType.Sub, superNode);
+                this.nodes.push(node);
+                superNode.subNodes.push(node);
+                if (superNode.subNodes.length > this.maxSubnodes) {
+                    this.maxSubnodes = superNode.subNodes.length;
+                }
+            }
             id++;
         }
 
@@ -620,8 +935,16 @@ export class CWorld {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.noiseTexture);
         gl.uniform1i(this.noiseTextureLoc, 0);
-        gl.bindVertexArray(this.icosaVao);
-        gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.istate.agraph_length);
+
+        gl.bindVertexArray(this.mainSingleGroup.vao);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.singleNodes.length);
+        if (this.subNodes) {
+            gl.bindVertexArray(this.mainSubGroup.vao);
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.subNodes.length);
+        }
+
+        gl.bindVertexArray(this.mainSuperGroup.vao);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 36, this.superNodes.length);
     }
 
     public renderGl() {
@@ -645,10 +968,16 @@ export class CWorld {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.noiseTexture);
         gl.uniform1i(this.pickerNoiseTextureLoc, 0);
-        gl.bindVertexArray(this.pickerVao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, this.transformData, gl.STATIC_DRAW);
-        gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.istate.agraph_length);
+        gl.bindVertexArray(this.pickerSingleGroup.vao);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.singleNodes.length);
+
+        if (this.subNodes) {
+            gl.bindVertexArray(this.pickerSubGroup.vao);
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.subNodes.length);
+        }
+
+        gl.bindVertexArray(this.pickerSuperGroup.vao);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 36, this.superNodes.length);
     }
 }
 

@@ -20,6 +20,13 @@ export enum EColorMode {
     Last
 }
 
+
+export enum ENodeType {
+    Single = 0,
+    Super,
+    Sub,
+}
+
 export interface ICamera {
     position: [number, number, number]
 }

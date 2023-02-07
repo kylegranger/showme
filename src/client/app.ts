@@ -59,7 +59,7 @@ export class CApp {
         this.initialize();
         this.initializeWebGl(this.gl);
         this.world = new CWorld(state, this.gl, this.canvas, this.camera);
-        this.world.initialize();
+        await this.world.initialize();
         this.initialized = true;
         this.mousekey = new CMousekeyCtlr(this);
     }
@@ -288,7 +288,7 @@ export class CApp {
             }
             this.camera.nodeScale = zoomLogToScale(this.zoomLogarithm);
             this.camera.z = Math.exp(this.zoomLogarithm)
-            console.log(`Z ${this.camera.z}, log ${this.zoomLogarithm}`)
+            // console.log(`Z ${this.camera.z}, log ${this.zoomLogarithm}`)
             this.camera.update()
         }
     }

@@ -1,9 +1,12 @@
 /// <reference path="../../node_modules/@webgpu/types/dist/index.d.ts" />
 
-import { INode, WORLD_WIDTH, WORLD_HEIGHT, EColorMode } from './core'
+import { INode, WORLD_WIDTH, WORLD_HEIGHT, EColorMode, ENodeType } from './core'
 import { mat4, vec3, vec4 } from 'gl-matrix'
 import { idToColor } from './util'
 import { PCamera } from './camera'
+
+
+const SUBNODE_ABSTAND: number = 2;
 
 export class CNode {
     public inode: INode;
@@ -12,9 +15,11 @@ export class CNode {
     public degreeColor: vec4;
     public idColor: vec4;
     public id: number;
+    public index: number;
     public metadata: vec4;
     public info: vec4;
     public position: vec3;
+    public subnodeOffset: vec3;
     public rotation: vec3;
     public matWorld: mat4;
     public matMV: mat4;
@@ -22,6 +27,9 @@ export class CNode {
     public scale: number;
     public numConnections: number;
     private camera: PCamera;
+    public nodeType: ENodeType;
+    public superNode: CNode;
+    public subNodes: CNode [];
 
     public release() {
         this.position = null
@@ -50,6 +58,9 @@ export class CNode {
     }
 
     public getCurrentColor(colorMode: EColorMode) : vec4 {
+        if (this.nodeType == ENodeType.Super) {
+            return this.degreeColor;
+        }
         if (colorMode == EColorMode.Between) {
             return this.betweenColor;
         } else if (colorMode == EColorMode.Degree) {
@@ -65,11 +76,14 @@ export class CNode {
         mat4.multiply(this.matMVP, proj, this.matMV);
     }
 
-    public initializePosition(isLocalHost: boolean) {
+    public initializePosition() {
         const zScale = 0.4;
         let x: number = (this.inode.geolocation.longitude + 180) / 360;
         let y: number = (this.inode.geolocation.latitude + 90) / 180;
-        let z: number = this.inode.cell_position*zScale;
+        let z: number = 1.0 * zScale;
+        if (this.nodeType == ENodeType.Sub) {
+            this.setSubnodeOffset(this.inode.cell_position-1, this.inode.cell_height);
+        }
 
         let longitude = x - 0.5;
         let latitude = y - 0.5;
@@ -84,23 +98,27 @@ export class CNode {
         )
     }
 
-    public constructor(inode: INode, id: number, camera: PCamera) {
+    public constructor(inode: INode, id: number, index: number, camera: PCamera, nodeType: ENodeType, superNode: CNode) {
         this.inode = inode;
         this.id = id;
+        this.index = index;
         this.camera = camera;
+        this.nodeType = nodeType;
         this.numConnections = this.inode.connections.length;
         let isLocalHost = inode.ip == "127.0.0.1";
+        this.superNode = superNode;
+        this.subNodes = new Array();
 
         this.metadata = vec4.create();
         this.idColor = idToColor(id);
-        this.scale = isLocalHost ? 4 : 1;
+        this.scale = isLocalHost ? 4 : this.inode.cell_height > 1 ? 0.5 : 1;
         if (isLocalHost) {
             this.inode.geolocation.city = 'n/a';
             this.inode.geolocation.country = 'localhost';
         }
 
         this.position = vec3.create();
-        // this.center = vec3.create();
+        this.subnodeOffset = vec3.create();
         this.rotation = vec3.create();
         this.matWorld = mat4.create();
         this.matMV = mat4.create();
@@ -116,14 +134,34 @@ export class CNode {
         this.metadata[2] = inode.closeness;
         this.metadata[3] = id;
 
-        this.initializePosition(isLocalHost);
+        this.initializePosition();
     }
 
     public setPosition(x: number, y: number, z: number) {
-        this.position[0] = x;
-        this.position[1] = y;
-        this.position[2] = z;
+        this.position[0] = x + this.subnodeOffset[0];
+        this.position[1] = y + this.subnodeOffset[1];
+        this.position[2] = z + this.subnodeOffset[2];
         this.updateMatrix();
+    }
+
+    public setSubnodeOffset(index: number, size: number) {
+        const edge = Math.ceil(Math.cbrt(size));
+        const z = Math.floor(index/edge/edge)
+        let remain = index - z*edge*edge;
+        const y = Math.floor(remain/edge)
+        const x = remain % edge;
+        // console.log('edge, index, size ', edge, index, size)
+        // console.log('xyz ', x, y, z)
+        const width = SUBNODE_ABSTAND*(edge-1);
+        const offsetX = -width/2;
+        const offsetY = -width/2;
+        const offsetZ = SUBNODE_ABSTAND/2
+        this.subnodeOffset = vec3.fromValues(
+            offsetX+SUBNODE_ABSTAND*x,
+            offsetY+SUBNODE_ABSTAND*y,
+            offsetZ+SUBNODE_ABSTAND*z*1.5);
+
+        console.log('this.subnodeOffset ', this.subnodeOffset);
     }
 
     public updateMatrix() {
