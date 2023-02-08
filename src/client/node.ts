@@ -30,6 +30,15 @@ export class CNode {
     public nodeType: ENodeType;
     public superNode: CNode;
     public subNodes: CNode [];
+    public isOpenedSuper: boolean;
+
+    public getConnectionPosition() {
+        if (this.nodeType == ENodeType.Single) {
+            return this.position;
+        } else if (this.nodeType == ENodeType.Sub) {
+            return this.superNode.isOpenedSuper ? this.position : this.superNode.position;
+        }
+    }
 
     public release() {
         this.position = null
@@ -108,6 +117,7 @@ export class CNode {
         let isLocalHost = inode.ip == "127.0.0.1";
         this.superNode = superNode;
         this.subNodes = new Array();
+        this.isOpenedSuper = false;
 
         this.metadata = vec4.create();
         this.idColor = idToColor(id);

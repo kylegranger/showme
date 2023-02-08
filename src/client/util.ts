@@ -28,7 +28,6 @@ export function colorToId(color: number) : number {
     let green = Math.floor(g / 4);
     let blue = Math.floor(b / 4);
     let id = red * 4096 + green * 64 + blue;
-    console.log('id ', id);
     return id;
 }
 

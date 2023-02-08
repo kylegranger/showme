@@ -158,7 +158,7 @@ export class CApp {
     }
 
     public handleClick(x: number, y: number) {
-        console.log(`showme: handleClick: ${x}, ${y}`)
+        // console.log(`showme: handleClick: ${x}, ${y}`)
         this.world.handleClick(x-0.5, y-0.5)
     }
 

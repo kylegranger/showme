@@ -64,7 +64,7 @@ export class CWorld {
     // private singleNodeData: Float32Array;
     // private superNodeData: Float32Array;
     // private subNodeData: Float32Array;
-    private subNodes: CNode [];
+    private selectedSuperNode: CNode;
     private connectionData: Float32Array;
     // private singleNodeVao: WebGLVertexArrayObject;
     // private superNodeVao: WebGLVertexArrayObject;
@@ -166,7 +166,6 @@ export class CWorld {
         this.istate = istate;
         this.canvas = canvas;
         this.camera = camera;
-        // this.selectedNode = null;
         this.gl = gl;
         this.inDrag = false;
         this.mouseIsOut = true;
@@ -200,7 +199,7 @@ export class CWorld {
         this.pickerSuperGroup = new CGroup();
         this.mainSubGroup = new CGroup();
         this.pickerSubGroup = new CGroup();
-        this.subNodes = null;
+        this.selectedSuperNode = null;
         this.maxSubnodes = 0;
 
     };
@@ -212,8 +211,8 @@ export class CWorld {
             n += NODE_TRANSFORM_SIZE;
         }
         n = 0;
-        if (this.subNodes) {
-            for (let node of this.subNodes) {
+        if (this.selectedSuperNode && this.selectedSuperNode.isOpenedSuper) {
+            for (let node of this.selectedSuperNode.subNodes) {
                 this.mainSubGroup.transformData.set(node.getCurrentColor(this.colorMode), n);
                 n += NODE_TRANSFORM_SIZE;
             }
@@ -277,6 +276,44 @@ export class CWorld {
         this.updatePickerData();
     }
 
+    
+    private updateSuperStatus(id) {
+        if (id == -1) {
+            if (this.selectedSuperNode) {
+                this.selectedSuperNode.isOpenedSuper = false;
+                this.selectedSuperNode = null;
+            }
+            return;
+        }
+        let node = this.getNode(id);
+        if (node.nodeType != ENodeType.Super) {
+            return;
+        }
+        if (this.selectedSuperNode) {
+            if (node == this.selectedSuperNode)  {
+                if (!node.isOpenedSuper) {
+                    // open up the super node
+                    node.isOpenedSuper = true;
+                    this.updateNodeColors();
+                    let n = 0;
+                    for (let subnode of node.subNodes) {
+                        this.mainSubGroup.transformData.set(subnode.degreeColor, n);
+                        this.mainSubGroup.transformData.set(subnode.metadata, n+4);
+                        this.mainSubGroup.transformData.set(subnode.idColor, n+8);
+                        this.mainSubGroup.transformData.set(subnode.matWorld, n+12);
+                        n += NODE_TRANSFORM_SIZE
+                    }
+                    console.log('new subnodes has length ', node.subNodes.length);
+                }
+            } else {
+                this.selectedSuperNode.isOpenedSuper = false;
+                this.selectedSuperNode = node;
+            }
+        } else {
+            this.selectedSuperNode = node;
+        }
+    }
+
     public handleClick(x: number, y: number) {
         console.log(`world: handleClick: ${x}, ${y}`)
         let screenCoords : vec2 = vec2.fromValues(x/this.canvas.width, 1 - y/this.canvas.height )
@@ -300,56 +337,34 @@ export class CWorld {
         } else {
             document.getElementById("overlayRight").style.visibility = "hidden";
         }
-        if (id != this.selectedId) {
-            if (this.selectedId != -1) {
-                // restore color
-                let node = this.getNode(this.selectedId);
-                if (node.nodeType == ENodeType.Single) {
-                    this.mainSingleGroup.transformData.set(this.singleNodes[node.index].getCurrentColor(this.colorMode), node.index*NODE_TRANSFORM_SIZE);
-                } else if (node.nodeType == ENodeType.Super) {
-                    this.mainSuperGroup.transformData.set(this.superNodes[node.index].getCurrentColor(this.colorMode), node.index*NODE_TRANSFORM_SIZE);
-                } else if (node.nodeType == ENodeType.Sub) {
-                    this.mainSubGroup.transformData.set(this.subNodes[node.index].getCurrentColor(this.colorMode), node.index*NODE_TRANSFORM_SIZE);
-                }
-            }
-            if (id != -1) {
-                let node = this.getNode(id);
-                if (node.nodeType == ENodeType.Single) {
-                    this.mainSingleGroup.transformData.set(this.white, node.index*NODE_TRANSFORM_SIZE);
-                    this.subNodes = null;
-                } else if (node.nodeType == ENodeType.Super) {
-                    this.mainSuperGroup.transformData.set(this.white, node.index*NODE_TRANSFORM_SIZE);
-                    this.subNodes = null;
-                } else if (node.nodeType == ENodeType.Sub) {
-                    this.mainSubGroup.transformData.set(this.white, node.index*NODE_TRANSFORM_SIZE);
-                }
-
-                this.setConnectionData(node);
-                this.numConnectionsToDraw = node.numConnections;
-                this.drawConnections = true;
+        this.updateSuperStatus(id);
+        if (id == this.selectedId) return;
+        if (this.selectedId != -1) {
+            // restore color
+            let node = this.getNode(this.selectedId);
+            if (node.nodeType == ENodeType.Single) {
+                this.mainSingleGroup.transformData.set(this.singleNodes[node.index].getCurrentColor(this.colorMode), node.index*NODE_TRANSFORM_SIZE);
+            } else if (node.nodeType == ENodeType.Super) {
+                this.mainSuperGroup.transformData.set(this.superNodes[node.index].getCurrentColor(this.colorMode), node.index*NODE_TRANSFORM_SIZE);
             } else {
-                this.drawConnections = false;
-                this.subNodes = null;
-            }
-            this.selectedId = id
-        } else {
-            if (this.selectedId != -1) {
-                let node = this.getNode(this.selectedId);
-                if (node.nodeType == ENodeType.Super) {
-                    this.subNodes = node.subNodes;
-                    this.updateNodeColors();
-                    let n = 0;
-                    for (let node of this.subNodes) {
-                        this.mainSubGroup.transformData.set(node.degreeColor, n);
-                        this.mainSubGroup.transformData.set(node.metadata, n+4);
-                        this.mainSubGroup.transformData.set(node.idColor, n+8);
-                        this.mainSubGroup.transformData.set(node.matWorld, n+12);
-                        n += NODE_TRANSFORM_SIZE
-                    }
-                    console.log('new subnodes has length ', this.subNodes.length);
-                }
+                this.mainSubGroup.transformData.set(this.selectedSuperNode.subNodes[node.index].getCurrentColor(this.colorMode), node.index*NODE_TRANSFORM_SIZE);
             }
         }
+        if (id != -1) {
+            let node = this.getNode(id);
+            if (node.nodeType == ENodeType.Single) {
+                this.mainSingleGroup.transformData.set(this.white, node.index*NODE_TRANSFORM_SIZE);
+            } else if (node.nodeType == ENodeType.Super) {
+                this.mainSuperGroup.transformData.set(this.white, node.index*NODE_TRANSFORM_SIZE);
+            } else {
+                this.mainSubGroup.transformData.set(this.white, node.index*NODE_TRANSFORM_SIZE);
+            }
+            this.numConnectionsToDraw = this.setConnectionData(node);
+            this.drawConnections = this.numConnectionsToDraw > 0;
+        } else {
+            this.drawConnections = false;
+        }
+        this.selectedId = id
     }
 
     private initTransformData() {
@@ -416,22 +431,26 @@ export class CWorld {
         gl.bufferData(gl.ARRAY_BUFFER, this.connectionData, gl.STATIC_DRAW);
     }
 
-    private setConnectionData(node: CNode) {
-        // console.log('setConnectionData, node ', node.id);
-        // let gl = this.gl;
-        // let n: number = 0;
-        // console.log('  num_connections : ', node.numConnections);
-        // for (let index of node.inode.connections) {
-        //     let conn: CNode = this.nodes[index];
-        //     this.connectionData.set(conn.getCurrentColor(this.colorMode), n);
-        //     this.connectionData.set(node.position, n+4);
-        //     let delta: vec3 = vec3.create();
-        //     vec3.sub(delta, conn.position, node.position);
-        //     this.connectionData.set(delta, n+8);
-        //     n += 12;
-        // }
-        // gl.bindBuffer(gl.ARRAY_BUFFER, this.connectionBuffer);
-        // gl.bufferData(gl.ARRAY_BUFFER, this.connectionData, gl.STATIC_DRAW);
+    private setConnectionData(node: CNode) : number {
+        if (node.nodeType == ENodeType.Super) {
+            return 0;
+        }
+        let gl = this.gl;
+        let n: number = 0;
+        for (let index of node.inode.connections) {
+            let connection: CNode = this.nodes[index];
+            this.connectionData.set(connection.getCurrentColor(this.colorMode), n);
+            this.connectionData.set(node.position, n+4);
+            let delta: vec3 = vec3.create();
+            let connPosition: vec3 = connection.getConnectionPosition();
+            // console.log('conn position ', connPosition);
+            vec3.sub(delta, connPosition, node.position);
+            this.connectionData.set(delta, n+8);
+            n += 12;
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.connectionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.connectionData, gl.STATIC_DRAW);
+        return node.numConnections;
     }
 
     private updateSingleNodeData() {
@@ -458,10 +477,10 @@ export class CWorld {
 
     private updateSubNodeData() {
         let gl = this.gl
-        if (!this.subNodes) return;
+        if (!this.selectedSuperNode || !this.selectedSuperNode.isOpenedSuper) return;
 
         let n: number = 12;
-        for (let node of this.subNodes) {
+        for (let node of this.selectedSuperNode.subNodes) {
             this.mainSubGroup.transformData.set(node.matWorld, n);
             n += 28
         }
@@ -476,7 +495,7 @@ export class CWorld {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSuperGroup.transformBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.mainSuperGroup.transformData, gl.STATIC_DRAW);
-        if (!this.subNodes) return;
+        if (!this.selectedSuperNode || !this.selectedSuperNode.isOpenedSuper) return;
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSubGroup.transformBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.mainSubGroup.transformData, gl.STATIC_DRAW);
@@ -938,9 +957,9 @@ export class CWorld {
 
         gl.bindVertexArray(this.mainSingleGroup.vao);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.singleNodes.length);
-        if (this.subNodes) {
+        if (this.selectedSuperNode && this.selectedSuperNode.isOpenedSuper) {
             gl.bindVertexArray(this.mainSubGroup.vao);
-            gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.subNodes.length);
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.selectedSuperNode.subNodes.length);
         }
 
         gl.bindVertexArray(this.mainSuperGroup.vao);
@@ -971,9 +990,9 @@ export class CWorld {
         gl.bindVertexArray(this.pickerSingleGroup.vao);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.singleNodes.length);
 
-        if (this.subNodes) {
+        if (this.selectedSuperNode && this.selectedSuperNode.isOpenedSuper) {
             gl.bindVertexArray(this.pickerSubGroup.vao);
-            gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.subNodes.length);
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, 60, this.selectedSuperNode.subNodes.length);
         }
 
         gl.bindVertexArray(this.pickerSuperGroup.vao);
