@@ -160,8 +160,6 @@ export class CNode {
         let remain = index - z*edge*edge;
         const y = Math.floor(remain/edge)
         const x = remain % edge;
-        // console.log('edge, index, size ', edge, index, size)
-        // console.log('xyz ', x, y, z)
         const width = SUBNODE_ABSTAND*(edge-1);
         const offsetX = -width/2;
         const offsetY = -width/2;

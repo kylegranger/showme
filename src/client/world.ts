@@ -397,13 +397,6 @@ export class CWorld {
             n += NODE_TRANSFORM_SIZE;
         }
 
-        // //for (let node of this.superNodes.) {
-        //     this.mainSuperGroup.transformData.set(node.degreeColor, n);
-        //     this.mainSuperGroup.transformData.set(node.metadata, n+4);
-        //     this.mainSuperGroup.transformData.set(node.idColor, n+8);
-        //     this.mainSuperGroup.transformData.set(node.matWorld, n+12);
-        //     n += NODE_TRANSFORM_SIZE
-        // }
         this.mainSuperGroup.transformBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSuperGroup.transformBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.mainSuperGroup.transformData, gl.STATIC_DRAW);
@@ -411,9 +404,7 @@ export class CWorld {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSuperGroup.transformBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.mainSuperGroup.transformData, gl.STATIC_DRAW);
 
-
         this.mainSubGroup.transformData = new Float32Array(this.maxSubnodes * NODE_TRANSFORM_SIZE);
-        console.log('this.maxSubnodes ', this.maxSubnodes)
         this.mainSubGroup.transformBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSubGroup.transformBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, this.mainSubGroup.transformData, gl.STATIC_DRAW);
@@ -501,15 +492,46 @@ export class CWorld {
         gl.bufferData(gl.ARRAY_BUFFER, this.mainSubGroup.transformData, gl.STATIC_DRAW);
     }
 
-
-
-    private initNodesGl() {
-        let gl = this.gl;
+    private initMainVao(group: CGroup, geometry: WebGLBuffer) {
+        let gl = this.gl
         let positionLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_position');
         let colorLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_color');
         let metadataLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_metadata');
         let modelLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_model');
         let normalLoc = gl.getAttribLocation(glShaders[EShader.Icosa], 'a_normal');
+        group.vao = gl.createVertexArray();
+        gl.bindVertexArray(group.vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, group.transformBuffer);
+        gl.enableVertexAttribArray(colorLoc);
+        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 0);
+        gl.enableVertexAttribArray(metadataLoc);
+        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
+        gl.enableVertexAttribArray(modelLoc);
+        gl.vertexAttribPointer(modelLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
+        gl.enableVertexAttribArray(modelLoc+1);
+        gl.vertexAttribPointer(modelLoc+1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
+        gl.enableVertexAttribArray(modelLoc+2);
+        gl.vertexAttribPointer(modelLoc+2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
+        gl.enableVertexAttribArray(modelLoc+3);
+        gl.vertexAttribPointer(modelLoc+3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
+
+        gl.vertexAttribDivisor(modelLoc,1);
+        gl.vertexAttribDivisor(modelLoc+1,1);
+        gl.vertexAttribDivisor(modelLoc+2,1);
+        gl.vertexAttribDivisor(modelLoc+3,1);
+        gl.vertexAttribDivisor(colorLoc,1);
+        gl.vertexAttribDivisor(metadataLoc,1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, geometry);
+        gl.enableVertexAttribArray(positionLoc);
+        gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
+        gl.enableVertexAttribArray(normalLoc);
+        gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 24, 12);
+    }
+
+
+    private initNodesGl() {
+        let gl = this.gl;
         this.icosaVPLoc = gl.getUniformLocation(glShaders[EShader.Icosa], 'u_viewProjection');
         this.paramsLoc = gl.getUniformLocation(glShaders[EShader.Icosa], 'u_params');
         this.noiseTextureLoc = gl.getUniformLocation(glShaders[EShader.Icosa], 'u_noiseTexture');
@@ -518,188 +540,55 @@ export class CWorld {
         this.cubeGeometry = cubeGeometry(gl);
 
         this.initTransformData();
-        this.mainSingleGroup.vao = gl.createVertexArray();
-        gl.bindVertexArray(this.mainSingleGroup.vao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSingleGroup.transformBuffer);
-        gl.enableVertexAttribArray(colorLoc);
-        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 0);
-        gl.enableVertexAttribArray(metadataLoc);
-        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
-        gl.enableVertexAttribArray(modelLoc);
-        gl.vertexAttribPointer(modelLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
-        gl.enableVertexAttribArray(modelLoc+1);
-        gl.vertexAttribPointer(modelLoc+1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
-        gl.enableVertexAttribArray(modelLoc+2);
-        gl.vertexAttribPointer(modelLoc+2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
-        gl.enableVertexAttribArray(modelLoc+3);
-        gl.vertexAttribPointer(modelLoc+3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
-
-        gl.vertexAttribDivisor(modelLoc,1);
-        gl.vertexAttribDivisor(modelLoc+1,1);
-        gl.vertexAttribDivisor(modelLoc+2,1);
-        gl.vertexAttribDivisor(modelLoc+3,1);
-        gl.vertexAttribDivisor(colorLoc,1);
-        gl.vertexAttribDivisor(metadataLoc,1);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.icosaGeometry);
-        gl.enableVertexAttribArray(positionLoc);
-        gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
-        gl.enableVertexAttribArray(normalLoc);
-        gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 24, 12);
-
-        this.mainSuperGroup.vao = gl.createVertexArray();
-        gl.bindVertexArray(this.mainSuperGroup.vao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSuperGroup.transformBuffer);
-        gl.enableVertexAttribArray(colorLoc);
-        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 0);
-        gl.enableVertexAttribArray(metadataLoc);
-        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
-        gl.enableVertexAttribArray(modelLoc);
-        gl.vertexAttribPointer(modelLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
-        gl.enableVertexAttribArray(modelLoc+1);
-        gl.vertexAttribPointer(modelLoc+1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
-        gl.enableVertexAttribArray(modelLoc+2);
-        gl.vertexAttribPointer(modelLoc+2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
-        gl.enableVertexAttribArray(modelLoc+3);
-        gl.vertexAttribPointer(modelLoc+3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
-
-        gl.vertexAttribDivisor(modelLoc,1);
-        gl.vertexAttribDivisor(modelLoc+1,1);
-        gl.vertexAttribDivisor(modelLoc+2,1);
-        gl.vertexAttribDivisor(modelLoc+3,1);
-        gl.vertexAttribDivisor(colorLoc,1);
-        gl.vertexAttribDivisor(metadataLoc,1);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeGeometry);
-        gl.enableVertexAttribArray(positionLoc);
-        gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
-        gl.enableVertexAttribArray(normalLoc);
-        gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 24, 12);
-
-        this.mainSubGroup.vao = gl.createVertexArray();
-        gl.bindVertexArray(this.mainSubGroup.vao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.mainSubGroup.transformBuffer);
-        gl.enableVertexAttribArray(colorLoc);
-        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 0);
-        gl.enableVertexAttribArray(metadataLoc);
-        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
-        gl.enableVertexAttribArray(modelLoc);
-        gl.vertexAttribPointer(modelLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
-        gl.enableVertexAttribArray(modelLoc+1);
-        gl.vertexAttribPointer(modelLoc+1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
-        gl.enableVertexAttribArray(modelLoc+2);
-        gl.vertexAttribPointer(modelLoc+2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
-        gl.enableVertexAttribArray(modelLoc+3);
-        gl.vertexAttribPointer(modelLoc+3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
-
-        gl.vertexAttribDivisor(modelLoc,1);
-        gl.vertexAttribDivisor(modelLoc+1,1);
-        gl.vertexAttribDivisor(modelLoc+2,1);
-        gl.vertexAttribDivisor(modelLoc+3,1);
-        gl.vertexAttribDivisor(colorLoc,1);
-        gl.vertexAttribDivisor(metadataLoc,1);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.icosaGeometry);
-        gl.enableVertexAttribArray(positionLoc);
-        gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
-        gl.enableVertexAttribArray(normalLoc);
-        gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 24, 12);
-
-
+        this.initMainVao(this.mainSingleGroup, this.icosaGeometry);
+        this.initMainVao(this.mainSuperGroup, this.cubeGeometry);
+        this.initMainVao(this.mainSubGroup, this.icosaGeometry);
     }
 
-    private initPickerGl() {
-        let gl = this.gl;
+    private initPickerVao(group: CGroup, geometry: WebGLBuffer) {
+        let gl = this.gl
         let positionLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_position');
         let pickerColorLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_pickerColor');
         let metadataLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_metadata');
         let modelLoc = gl.getAttribLocation(glShaders[EShader.Picker], 'a_model');
+
+        group.vao = gl.createVertexArray();
+        gl.bindVertexArray(group.vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, group.transformBuffer);
+        gl.enableVertexAttribArray(metadataLoc);
+        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
+        gl.enableVertexAttribArray(pickerColorLoc);
+        gl.vertexAttribPointer(pickerColorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 32);
+        gl.enableVertexAttribArray(modelLoc);
+        gl.vertexAttribPointer(modelLoc+0, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
+        gl.enableVertexAttribArray(modelLoc+1);
+        gl.vertexAttribPointer(modelLoc+1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
+        gl.enableVertexAttribArray(modelLoc+2);
+        gl.vertexAttribPointer(modelLoc+2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
+        gl.enableVertexAttribArray(modelLoc+3);
+        gl.vertexAttribPointer(modelLoc+3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
+
+        gl.vertexAttribDivisor(modelLoc+0,1);
+        gl.vertexAttribDivisor(modelLoc+1,1);
+        gl.vertexAttribDivisor(modelLoc+2,1);
+        gl.vertexAttribDivisor(modelLoc+3,1);
+        gl.vertexAttribDivisor(pickerColorLoc,1);
+        gl.vertexAttribDivisor(metadataLoc,1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, geometry);
+        gl.enableVertexAttribArray(positionLoc);
+        gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
+    }
+
+    private initPickerGl() {
+        let gl = this.gl;
         this.pickerVPLoc = gl.getUniformLocation(glShaders[EShader.Picker], 'u_viewProjection');
         this.pickerParamsLoc = gl.getUniformLocation(glShaders[EShader.Picker], 'u_params');
         this.pickerNoiseTextureLoc = gl.getUniformLocation(glShaders[EShader.Picker], 'u_noiseTexture');
 
-        this.pickerSingleGroup.vao = gl.createVertexArray();
-        gl.bindVertexArray(this.pickerSingleGroup.vao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSingleGroup.transformBuffer);
-        gl.enableVertexAttribArray(metadataLoc);
-        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
-        gl.enableVertexAttribArray(pickerColorLoc);
-        gl.vertexAttribPointer(pickerColorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 32);
-        gl.enableVertexAttribArray(modelLoc);
-        gl.vertexAttribPointer(modelLoc+0, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
-        gl.enableVertexAttribArray(modelLoc+1);
-        gl.vertexAttribPointer(modelLoc+1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
-        gl.enableVertexAttribArray(modelLoc+2);
-        gl.vertexAttribPointer(modelLoc+2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
-        gl.enableVertexAttribArray(modelLoc+3);
-        gl.vertexAttribPointer(modelLoc+3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
-
-        gl.vertexAttribDivisor(modelLoc+0,1);
-        gl.vertexAttribDivisor(modelLoc+1,1);
-        gl.vertexAttribDivisor(modelLoc+2,1);
-        gl.vertexAttribDivisor(modelLoc+3,1);
-        gl.vertexAttribDivisor(pickerColorLoc,1);
-        gl.vertexAttribDivisor(metadataLoc,1);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.icosaGeometry);
-        gl.enableVertexAttribArray(positionLoc);
-        gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
-
-        this.pickerSuperGroup.vao = gl.createVertexArray();
-        gl.bindVertexArray(this.pickerSuperGroup.vao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSuperGroup.transformBuffer);
-        gl.enableVertexAttribArray(metadataLoc);
-        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
-        gl.enableVertexAttribArray(pickerColorLoc);
-        gl.vertexAttribPointer(pickerColorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 32);
-        gl.enableVertexAttribArray(modelLoc);
-        gl.vertexAttribPointer(modelLoc+0, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
-        gl.enableVertexAttribArray(modelLoc+1);
-        gl.vertexAttribPointer(modelLoc+1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
-        gl.enableVertexAttribArray(modelLoc+2);
-        gl.vertexAttribPointer(modelLoc+2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
-        gl.enableVertexAttribArray(modelLoc+3);
-        gl.vertexAttribPointer(modelLoc+3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
-
-        gl.vertexAttribDivisor(modelLoc+0,1);
-        gl.vertexAttribDivisor(modelLoc+1,1);
-        gl.vertexAttribDivisor(modelLoc+2,1);
-        gl.vertexAttribDivisor(modelLoc+3,1);
-        gl.vertexAttribDivisor(pickerColorLoc,1);
-        gl.vertexAttribDivisor(metadataLoc,1);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeGeometry);
-        gl.enableVertexAttribArray(positionLoc);
-        gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
-
-        this.pickerSubGroup.vao = gl.createVertexArray();
-        gl.bindVertexArray(this.pickerSubGroup.vao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSubGroup.transformBuffer);
-        gl.enableVertexAttribArray(metadataLoc);
-        gl.vertexAttribPointer(metadataLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 16);
-        gl.enableVertexAttribArray(pickerColorLoc);
-        gl.vertexAttribPointer(pickerColorLoc, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 32);
-        gl.enableVertexAttribArray(modelLoc);
-        gl.vertexAttribPointer(modelLoc+0, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 48);
-        gl.enableVertexAttribArray(modelLoc+1);
-        gl.vertexAttribPointer(modelLoc+1, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 64);
-        gl.enableVertexAttribArray(modelLoc+2);
-        gl.vertexAttribPointer(modelLoc+2, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 80);
-        gl.enableVertexAttribArray(modelLoc+3);
-        gl.vertexAttribPointer(modelLoc+3, 4, gl.FLOAT, false, NODE_TRANSFORM_SIZE*4, 96);
-
-        gl.vertexAttribDivisor(modelLoc+0,1);
-        gl.vertexAttribDivisor(modelLoc+1,1);
-        gl.vertexAttribDivisor(modelLoc+2,1);
-        gl.vertexAttribDivisor(modelLoc+3,1);
-        gl.vertexAttribDivisor(pickerColorLoc,1);
-        gl.vertexAttribDivisor(metadataLoc,1);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.icosaGeometry);
-        gl.enableVertexAttribArray(positionLoc);
-        gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
-
-
+        this.initPickerVao(this.pickerSingleGroup, this.icosaGeometry);
+        this.initPickerVao(this.pickerSuperGroup, this.cubeGeometry);
+        this.initPickerVao(this.pickerSubGroup, this.icosaGeometry);
     }
 
     private initWorldMapGl() {
