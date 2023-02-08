@@ -121,7 +121,7 @@ export class CNode {
 
         this.metadata = vec4.create();
         this.idColor = idToColor(id);
-        this.scale = isLocalHost ? 4 : this.inode.cell_height > 1 ? 0.5 : 1;
+        this.scale = isLocalHost ? 4 : nodeType == ENodeType.Sub ? 0.7 : 1;
         if (isLocalHost) {
             this.inode.geolocation.city = 'n/a';
             this.inode.geolocation.country = 'localhost';
@@ -165,13 +165,11 @@ export class CNode {
         const width = SUBNODE_ABSTAND*(edge-1);
         const offsetX = -width/2;
         const offsetY = -width/2;
-        const offsetZ = SUBNODE_ABSTAND/2
+        const offsetZ = SUBNODE_ABSTAND;
         this.subnodeOffset = vec3.fromValues(
             offsetX+SUBNODE_ABSTAND*x,
             offsetY+SUBNODE_ABSTAND*y,
             offsetZ+SUBNODE_ABSTAND*z*1.5);
-
-        console.log('this.subnodeOffset ', this.subnodeOffset);
     }
 
     public updateMatrix() {

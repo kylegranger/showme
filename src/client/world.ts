@@ -323,16 +323,16 @@ export class CWorld {
         console.log(`  got id ${id}`)
         if (id >= 0) {
             let node = this.getNode(id);
-            this.ipNode.nodeValue = node.inode.ip;
+            this.ipNode.nodeValue = node.nodeType != ENodeType.Super ? 'IP: ' + node.inode.ip : `Super Node: ${node.subNodes.length} nodes`;
             this.betweennessNode.nodeValue = node.nodeType != ENodeType.Super ? node.inode.betweenness.toFixed(6) : '--';
             this.closenessNode.nodeValue = node.nodeType != ENodeType.Super ? node.inode.closeness.toFixed(6) : '--';
             this.connectionsNode.nodeValue = node.nodeType != ENodeType.Super ? node.numConnections.toString() : '--';
             this.latitudeNode.nodeValue = node.inode.geolocation.latitude.toFixed(4);
             this.longitudeNode.nodeValue = node.inode.geolocation.longitude.toFixed(4);
-            this.cityNode.nodeValue = 'x' + node.subnodeOffset[0].toFixed(2) + 'y' + node.subnodeOffset[1].toFixed(2) + 'z' + node.subnodeOffset[2].toFixed(2);
+            this.cityNode.nodeValue = node.inode.geolocation.city;
             this.countryNode.nodeValue = node.inode.geolocation.country;
             this.positionNode.nodeValue = node.nodeType != ENodeType.Super ? node.inode.cell_position.toString() : '--';
-            this.heightNode.nodeValue = node.inode.cell_height.toString();
+            this.heightNode.nodeValue = node.nodeType != ENodeType.Super ? node.inode.cell_height.toString() : '--';
             document.getElementById("overlayRight").style.visibility = "visible";
         } else {
             document.getElementById("overlayRight").style.visibility = "hidden";
@@ -346,7 +346,7 @@ export class CWorld {
                 this.mainSingleGroup.transformData.set(this.singleNodes[node.index].getCurrentColor(this.colorMode), node.index*NODE_TRANSFORM_SIZE);
             } else if (node.nodeType == ENodeType.Super) {
                 this.mainSuperGroup.transformData.set(this.superNodes[node.index].getCurrentColor(this.colorMode), node.index*NODE_TRANSFORM_SIZE);
-            } else {
+            } else if (node.nodeType == ENodeType.Sub && node.superNode == this.selectedSuperNode) {
                 this.mainSubGroup.transformData.set(this.selectedSuperNode.subNodes[node.index].getCurrentColor(this.colorMode), node.index*NODE_TRANSFORM_SIZE);
             }
         }
@@ -514,12 +514,6 @@ export class CWorld {
         this.paramsLoc = gl.getUniformLocation(glShaders[EShader.Icosa], 'u_params');
         this.noiseTextureLoc = gl.getUniformLocation(glShaders[EShader.Icosa], 'u_noiseTexture');
 
-        console.log('icosa positionLoc ', positionLoc)
-        console.log('icosa modelLoc ', modelLoc)
-        console.log('icosa colorLoc ', colorLoc)
-        console.log('icosa metadataLoc ', metadataLoc)
-        console.log('icosa normalLoc ', normalLoc)
-
         this.icosaGeometry = icosaGeometry(gl);
         this.cubeGeometry = cubeGeometry(gl);
 
@@ -624,11 +618,6 @@ export class CWorld {
         this.pickerParamsLoc = gl.getUniformLocation(glShaders[EShader.Picker], 'u_params');
         this.pickerNoiseTextureLoc = gl.getUniformLocation(glShaders[EShader.Picker], 'u_noiseTexture');
 
-        console.log('picker positionLoc ', positionLoc)
-        console.log('picker pickerColorLoc ', pickerColorLoc)
-        console.log('picker metadataLoc ', metadataLoc)
-        console.log('picker modelLoc ', modelLoc)
-
         this.pickerSingleGroup.vao = gl.createVertexArray();
         gl.bindVertexArray(this.pickerSingleGroup.vao);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSingleGroup.transformBuffer);
@@ -656,7 +645,6 @@ export class CWorld {
         gl.enableVertexAttribArray(positionLoc);
         gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, false, 24, 0);
 
-        // new
         this.pickerSuperGroup.vao = gl.createVertexArray();
         gl.bindVertexArray(this.pickerSuperGroup.vao);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.pickerSuperGroup.transformBuffer);
@@ -751,11 +739,6 @@ export class CWorld {
         let vertex1Loc = gl.getAttribLocation(glShaders[EShader.Connection], 'a_vertex1');
         let vertex2Loc = gl.getAttribLocation(glShaders[EShader.Connection], 'a_vertex2');
         this.connectionVPLoc = gl.getUniformLocation(glShaders[EShader.Connection], 'u_viewProjection');
-
-        console.log('connection positionLoc ', positionLoc)
-        console.log('connection colorLoc ', colorLoc)
-        console.log('connection vertex1Loc ', vertex1Loc)
-        console.log('connection vertex2Loc ', vertex2Loc)
 
         this.lineGeometry = lineGeometry(gl)
         this.connectionVao = gl.createVertexArray();

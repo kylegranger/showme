@@ -1,6 +1,6 @@
 
 
-const CUBE_SCALE: number = 1.2;
+const CUBE_SCALE: number = 0.9;
 const CUBE_POLYS: number = 12;
 const positions: number [] = [
     // top left front: v 0
@@ -68,7 +68,6 @@ const indices = [
 
 
 export function cubeGeometry(gl: WebGL2RenderingContext) : WebGLBuffer {
-    console.log('initIcosa')
     // 6 sides, 2 polys per side = 12 polys
     const VERTEX_SIZE = 6;
     let size = 3 * CUBE_POLYS * VERTEX_SIZE;
