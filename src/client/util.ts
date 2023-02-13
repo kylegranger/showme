@@ -113,12 +113,12 @@ const maxLog = 7.6;
 const minLog = 5.5;
 const deltaLog = maxLog - minLog
 const scaleMax = 3.2;
-export function zoomLogToScale(zoomLogarithm: number) : vec3 {
+export function zoomLogToScale(zoomLogarithm: number) : number {
     let scale = 1.0;
     if (zoomLogarithm > maxLog) {
         scale = scaleMax;
     } else if (zoomLogarithm > minLog ){
         scale = 1 + (zoomLogarithm - minLog) * (scaleMax-1.0) / deltaLog;
     }
-    return vec3.fromValues(scale, scale, scale);
+    return scale;
 }

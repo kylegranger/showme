@@ -173,9 +173,10 @@ export class CNode {
     public updateMatrix() {
         let ry = mat4.create();
         let t = mat4.create();
+        let scale = this.camera.nodeScale * this.scale;
+        // console.log('scale = ', scale);
         mat4.identity(this.matWorld);
-        mat4.scale(this.matWorld, this.matWorld, this.camera.nodeScale);
-        mat4.scale(this.matWorld, this.matWorld, vec3.fromValues(this.scale,this.scale, this.scale));
+        mat4.scale(this.matWorld, this.matWorld, vec3.fromValues(scale,scale,scale));
         mat4.fromYRotation(ry, this.rotation[1]);
         mat4.multiply(this.matWorld, ry, this.matWorld);
         mat4.fromTranslation(t, this.position);

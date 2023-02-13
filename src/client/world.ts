@@ -17,6 +17,8 @@ import { createRandomTexture, loadTexture } from './util';
 
 const NODE_TRANSFORM_SIZE: number = 28;
 const CONNECTION_TRANSFORM_SIZE: number = 12;
+const MAX_SUPERNODE_SCALE: number = 2.0;
+const MIN_SUPERNODE_SCALE: number = 0.5;
 
 
 export class CWorld {
@@ -54,22 +56,9 @@ export class CWorld {
     private pickerSuperGroup: CGroup;
     private pickerSubGroup: CGroup;
 
-    // private singleNodeBuffer: WebGLBuffer;
-    // private superNodeBuffer: WebGLBuffer;
-    // private subNodeBuffer: WebGLBuffer;
-    // private pickerSingleNodeBuffer: WebGLBuffer;
-    // private pickerSuperNodeBuffer: WebGLBuffer;
-    // private pickerSubNodeBuffer: WebGLBuffer;
     private connectionBuffer: WebGLBuffer;
-    // private singleNodeData: Float32Array;
-    // private superNodeData: Float32Array;
-    // private subNodeData: Float32Array;
     private selectedSuperNode: CNode;
     private connectionData: Float32Array;
-    // private singleNodeVao: WebGLVertexArrayObject;
-    // private superNodeVao: WebGLVertexArrayObject;
-    // private subNodeVao: WebGLVertexArrayObject;
-    // private pickerVao: WebGLVertexArrayObject;
     private worldMapVao: WebGLVertexArrayObject;
     private gradientVao: WebGLVertexArrayObject;
     private connectionVao: WebGLVertexArrayObject;
@@ -223,17 +212,14 @@ export class CWorld {
         switch (this.colorMode) {
             case EColorMode.Between:
                 this.colorModeNode.nodeValue = 'betweenness'
-                // this.gradientNode.nodeValue = this.betweennessDescription;
                 document.getElementById("gradient").textContent = this.betweennessDescription;
                 break;
             case EColorMode.Close:
                 this.colorModeNode.nodeValue = 'closeness'
-                // this.gradientNode.nodeValue = this.closenessDescription;
                 document.getElementById("gradient").textContent = this.closenessDescription;
                 break;
             case EColorMode.Degree:
                 this.colorModeNode.nodeValue = 'degree'
-                // this.gradientNode.nodeValue = this.degreeDescription;
                 document.getElementById("gradient").textContent = this.degreeDescription;
                 break;
         }
@@ -774,6 +760,13 @@ export class CWorld {
 
         for (let inode of this.istate.nodes) {
             this.updateStats(inode);
+        }
+
+        let minSuperNodeSize = Math.sqrt(2);
+        let maxSuperNodeSize = Math.sqrt(this.maxSubnodes);
+        for (let superNode of this.superNodes) {
+            let size = Math.sqrt(superNode.subNodes.length);
+            superNode.scale = (size-minSuperNodeSize)/maxSuperNodeSize * (MAX_SUPERNODE_SCALE-MIN_SUPERNODE_SCALE) + MIN_SUPERNODE_SCALE;
         }
 
         this.setDescriptions();
