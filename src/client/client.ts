@@ -19,54 +19,26 @@ var clickme = document.getElementById("clickme");
 clickme.addEventListener("click", loadState, false);
 
 async function loadState() {
-    console.log('got click')
-
-
-    window.removeEventListener('mousedown', loadState, false);
     let fileHandle: FileSystemFileHandle;
-    [fileHandle] = await window.showOpenFilePicker();
+    try {
+        [fileHandle] = await window.showOpenFilePicker();
+    } catch (err) {
+        console.log('User cancelled request, or problem loading file.  Gracefully exiting loadState');
+        return;
+    }
 
     console.log('fileHandle: ', fileHandle);
-    var elem = document.getElementById('clickme');
-    elem.parentNode.removeChild(elem);
+    document.getElementById("clickdiv").style.display = "none";
     document.getElementById("instructions").style.visibility = 'visible';
     document.getElementById("overlayLeft").style.visibility = 'visible';
     document.getElementById("gradient").style.visibility = 'visible';
 
-
     app = new CApp(document.querySelector("#bancan"), fileHandle)
     window['showmeapp'] = app;
-
-    // fileHandle.getFile().then( async (file) => {
-    //     const contents = await file.text();
-    //     handleStateText(contents);
-    // });
-    // clickme
-
-    // app = new CApp(document.querySelector("#bancan"), fileHandle)
-    // window['showmeapp'] = app;
-    
-    // evt.preventDefault();
 }
 
+window.addEventListener('resize', onWindowResize, false);
 
-// // main();
-// async function loadState(evt: MouseEvent) {
-//     console.log('got click')
-
-//     window.removeEventListener('mousedown', loadState, false);
-//     let fileHandle: FileSystemFileHandle;
-//     [fileHandle] = await window.showOpenFilePicker();
-
-//     app = new CApp(document.querySelector("#bancan"), fileHandle)
-//     window['showmeapp'] = app;
-    
-//     evt.preventDefault();
-// }
-
-// window.addEventListener('mousedown', loadState, false);
-
-window.addEventListener('resize', onWindowResize, false)
 function onWindowResize() {
 
     var canvas: HTMLCanvasElement = document.querySelector("#bancan");
