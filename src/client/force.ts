@@ -1,6 +1,6 @@
 import { showOpenFilePicker } from 'file-system-access'
 import ForceGraph3D from '3d-force-graph';
-import { IState, INode } from './core';
+import { IState, INode, EColorMode } from './core';
 
 let Graph: any;
 
@@ -10,6 +10,7 @@ let minBetweenness = 100;
 let maxBetweenness = 0;
 let minCloseness = 100;
 let maxCloseness = 0;
+let colorMode = EColorMode.Degree;
 
 function updateStats(inode: INode) {
     if (inode.connections.length > maxConnections) {
@@ -32,8 +33,7 @@ function updateStats(inode: INode) {
     }
 }
 
-// r, g, b are normalized values 0..1
-function colorString(r: number, g: number, b: number) : string {
+function colorToString(r: number, g: number, b: number) : string {
     let rstr = Math.floor(r * 255).toString(16);
     if (rstr.length < 2) rstr = '0' + rstr;
     let gstr = Math.floor(g * 255).toString(16);
@@ -48,27 +48,43 @@ function colorFromNormalizedValue(v: number) : string {
     if (v < 0.25) {
         // blue -> cyan
         v = v * 4;
-        return colorString(0, v, 1);
+        return colorToString(0, v, 1);
     } else if (v < 0.5) {
         // cyan -> green
         v = (v-0.25) * 4;
-        return colorString(0, 1, 1-v);
+        return colorToString(0, 1, 1-v);
     } else if (v < 0.75) {
         // green -> yellow
         v = (v-0.50) * 4;
-        return colorString(v, 1, 0);
+        return colorToString(v, 1, 0);
     } else {
         // yellow -> red
         v = (v-0.75) * 4;
-        return colorString(1, 1-v, 0);
+        return colorToString(1, 1-v, 0);
+    }
+}
+
+function cycleColorMode() {
+    colorMode++;
+    if (colorMode == EColorMode.Last) {
+        colorMode = EColorMode.Between;
+    }
+    if (colorMode == EColorMode.Between) {
+        console.log('Color mode is now BETWEENNESS.');
+        Graph.nodeColor(node => node['betweenColor']);
+    } else if (colorMode == EColorMode.Close) {
+        console.log('Color mode is now CLOSENESS.');
+        Graph.nodeColor(node => node['closeColor']);
+    } else {
+        console.log('Color mode is now DEGREE.');
+        Graph.nodeColor(node => node['degreeColor']);
     }
 }
 
 function onKeydownEvent(evt: KeyboardEvent) {
-    console.log('onKeyDownEvent: ', evt.code);
+    // console.log('onKeyDownEvent: ', evt.code);
     if (evt.code == 'KeyC') {
-        console.log('colormode cycle!');
-        Graph.nodeColor(Graph.nodeColor())
+        cycleColorMode()
     }
 }
 
@@ -96,29 +112,8 @@ export async function loadForceState() {
     });
 }
 
-
-// function randomColorString() : string {
-//     let r = Math.floor(Math.random() * 256);
-//     let g = Math.floor(Math.random() * 256);
-//     let b = Math.floor(Math.random() * 256);
-//     // if (rstr.length < 2) rstr = '0' + rstr;
-//     // let gstr = Math.floor(Math.random() * 256).toString(16);
-//     // if (gstr.length < 2) gstr = '0' + gstr;
-//     // let bstr = Math.floor(Math.random() * 256).toString(16);
-//     // if (bstr.length < 2) bstr = '0' + bstr;
-//     // let result = "#" + rstr + gstr + bstr;
-//     return colorString(r, g, b);
-// }
-
 function handleStateText(text: string) {
     let istate : IState = JSON.parse(text);
-    // console.log('random color: ', randomColorString());
-    // console.log('random color: ', randomColorString());
-    // console.log('random color: ', randomColorString());
-    // console.log('random color: ', randomColorString());
-    // console.log('random color: ', randomColorString());
-    // console.log('random color: ', randomColorString());
-    console.log('my istate: ', istate);
     const N = 300;
     let nodes = new Array();
     let links = new Array();
@@ -129,7 +124,6 @@ function handleStateText(text: string) {
     for (let node of istate.nodes) {
         let id = 'id' + i.toString();
         let name = 'name' + i.toString();
-        // let group = (Math.floor(node.geolocation.longitude/10) + 18).toString();
         let ip = node.ip;
         let city = node.geolocation.city;
 
@@ -142,8 +136,7 @@ function handleStateText(text: string) {
         let d =  (node.connections.length - minConnections) / (maxConnections - minConnections);
         let degreeColor = colorFromNormalizedValue(d);
 
-
-        nodes.push({id, name, ip, city, degreeColor});
+        nodes.push({id, name, ip, city, degreeColor, betweenColor, closeColor});
         for (let connection of node.connections) {
             let cid = 'id' + connection.toString();
             let link = {
@@ -158,12 +151,11 @@ function handleStateText(text: string) {
         nodes, links
     }
 
-    console.log('Data: ', Data);
+    console.log('Color mode is now DEGREE.');
     Graph = ForceGraph3D()
     (document.getElementById('graph'))
         .linkVisibility(false)
         .nodeColor(node => node['degreeColor'])
-        // .nodeAutoColorBy('group')
         .nodeLabel(node => `${node['name']}: ${node['ip']} ${node['city']}`)
         .graphData(Data);
    
