@@ -730,6 +730,8 @@ export class CWorld {
         let id = 0;
         for (let inode of this.istate.nodes) {
             let geostr: string = this.createGeoString(inode.geolocation.coordinates.latitude, inode.geolocation.coordinates.longitude);
+            // remove port number from addr string.
+            inode.addr = inode.addr.substring(0, inode.addr.indexOf(':'));
             if (inode.cell_position == 1) {
                 if (inode.cell_height > 1) {
                     // new super node
