@@ -38,11 +38,19 @@ export class CApp {
         }
 
         let self = this
-        handle.getFile().then( async (file: File) => {
-            const contents = await file.text();
-                let istate = <IState>JSON.parse(contents)
+        if (handle) {
+            handle.getFile().then( async (file: File) => {
+                const contents = await file.text();
+                    let istate = <IState>JSON.parse(contents)
+                        await self.init(istate)
+                });
+        } else {
+            console.log('load default state.json')
+            self.readTextFile('data/state.json', async function(atext: string) {
+                let istate = <IState>JSON.parse(atext)
                     await self.init(istate)
             });
+        }
 
         this.startTime = Date.now()/1000
         this.lastTime = 0

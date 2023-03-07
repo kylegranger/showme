@@ -6,7 +6,7 @@
 ```
 npm i
 npm run build
-npm run start
+npm run start http
 ```
 Open a browser at http://127.0.0.1:3000.
 
