@@ -3,8 +3,10 @@ import { CApp } from './app'
 import { showOpenFilePicker } from 'file-system-access'
 let app : CApp;
 
-var clickgeo = document.getElementById("clickgeo");
-if (clickgeo) clickgeo.addEventListener("click", loadGeoState, false);
+var loadgeo = document.getElementById("loadgeo");
+if (loadgeo) loadgeo.addEventListener("click", loadGeoState, false);
+var defaultgeo = document.getElementById("defaultgeo");
+if (defaultgeo) defaultgeo.addEventListener("click", loadDefaultState, false);
 async function loadGeoState() {
     let fileHandle: FileSystemFileHandle;
     try {
@@ -28,6 +30,16 @@ async function loadGeoState() {
     document.getElementById("gradient").style.visibility = 'visible';
     window.addEventListener('resize', onWindowResize, false);
     app = new CApp(document.querySelector("#bancan"), fileHandle)
+    window['showmeapp'] = app;
+}
+
+async function loadDefaultState() {
+    document.getElementById("clickdiv").style.display = "none";
+    document.getElementById("instructions").style.visibility = 'visible';
+    document.getElementById("overlayLeft").style.visibility = 'visible';
+    document.getElementById("gradient").style.visibility = 'visible';
+    window.addEventListener('resize', onWindowResize, false);
+    app = new CApp(document.querySelector("#bancan"), null)
     window['showmeapp'] = app;
 }
 

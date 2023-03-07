@@ -87,8 +87,8 @@ export class CNode {
 
     public initializePosition() {
         const zScale = 0.4;
-        let x: number = (this.inode.geolocation.longitude + 180) / 360;
-        let y: number = (this.inode.geolocation.latitude + 90) / 180;
+        let x: number = (this.inode.geolocation.coordinates.longitude + 180) / 360;
+        let y: number = (this.inode.geolocation.coordinates.latitude + 90) / 180;
         let z: number = 1.0 * zScale;
         if (this.nodeType == ENodeType.Sub) {
             this.setSubnodeOffset(this.inode.cell_position-1, this.inode.cell_height);
@@ -114,7 +114,7 @@ export class CNode {
         this.camera = camera;
         this.nodeType = nodeType;
         this.numConnections = this.inode.connections.length;
-        let isLocalHost = inode.ip == "127.0.0.1";
+        let isLocalHost = inode.addr.indexOf('127.0.0.1') >= 0;
         this.superNode = superNode;
         this.subNodes = new Array();
         this.isOpenedSuper = false;

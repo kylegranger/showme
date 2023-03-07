@@ -112,6 +112,31 @@ export async function loadForceState() {
     });
 }
 
+export async function loadDefaultState() {
+    window.addEventListener('keydown', (evt) => {
+        onKeydownEvent(evt);
+    });
+
+
+    var rawFile = new XMLHttpRequest();
+    rawFile.overrideMimeType("application/json");
+    rawFile.open("GET", 'data/state.json', true);
+    rawFile.onreadystatechange = function() {
+        if (rawFile.readyState == 4 && rawFile.status == 200) {
+            //callback(rawFile.responseText);
+            handleStateText(rawFile.responseText);
+        }
+    }
+    rawFile.send(null);
+}
+
+
+//     fileHandle.getFile().then( async (file) => {
+//         const contents = await file.text();
+//         handleStateText(contents);
+//     });
+// }
+
 function handleStateText(text: string) {
     let istate : IState = JSON.parse(text);
     const N = 300;
@@ -124,7 +149,7 @@ function handleStateText(text: string) {
     for (let node of istate.nodes) {
         let id = 'id' + i.toString();
         let name = 'name' + i.toString();
-        let ip = node.ip;
+        let addr = node.addr;
         let city = node.geolocation.city;
 
         let b = (node.betweenness - minBetweenness) / (maxBetweenness - minBetweenness);
@@ -136,7 +161,7 @@ function handleStateText(text: string) {
         let d =  (node.connections.length - minConnections) / (maxConnections - minConnections);
         let degreeColor = colorFromNormalizedValue(d);
 
-        nodes.push({id, name, ip, city, degreeColor, betweenColor, closeColor});
+        nodes.push({id, name, addr, city, degreeColor, betweenColor, closeColor});
         for (let connection of node.connections) {
             let cid = 'id' + connection.toString();
             let link = {
@@ -169,3 +194,5 @@ function handleStateText(text: string) {
 
 var clickforce = document.getElementById("clickforce");
 if (clickforce) clickforce.addEventListener("click", loadForceState, false);
+var defaultforce = document.getElementById("defaultforce");
+if (defaultforce) defaultforce.addEventListener("click", loadDefaultState, false);

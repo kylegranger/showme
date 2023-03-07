@@ -238,10 +238,10 @@ export class CWorld {
     }
 
     public getNode(id: number) : CNode {
-        if (id < this.istate.agraph_length) {
+        if (id < this.istate.nodes.length) {
             return this.nodes[id];
         } else {
-            return this.superNodes[id-this.istate.agraph_length];
+            return this.superNodes[id-this.istate.nodes.length];
         }
     }
 
@@ -311,12 +311,12 @@ export class CWorld {
         console.log(`  got id ${id}`)
         if (id >= 0) {
             let node = this.getNode(id);
-            this.ipNode.nodeValue = node.nodeType != ENodeType.Super ? 'IP: ' + node.inode.ip : `Super Node: ${node.subNodes.length} nodes`;
+            this.ipNode.nodeValue = node.nodeType != ENodeType.Super ? 'IP: ' + node.inode.addr : `Super Node: ${node.subNodes.length} nodes`;
             this.betweennessNode.nodeValue = node.nodeType != ENodeType.Super ? node.inode.betweenness.toFixed(6) : '--';
             this.closenessNode.nodeValue = node.nodeType != ENodeType.Super ? node.inode.closeness.toFixed(6) : '--';
             this.connectionsNode.nodeValue = node.nodeType != ENodeType.Super ? node.numConnections.toString() : '--';
-            this.latitudeNode.nodeValue = node.inode.geolocation.latitude.toFixed(4);
-            this.longitudeNode.nodeValue = node.inode.geolocation.longitude.toFixed(4);
+            this.latitudeNode.nodeValue = node.inode.geolocation.coordinates.latitude.toFixed(4);
+            this.longitudeNode.nodeValue = node.inode.geolocation.coordinates.longitude.toFixed(4);
             this.cityNode.nodeValue = node.inode.geolocation.city;
             this.countryNode.nodeValue = node.inode.geolocation.country;
             this.positionNode.nodeValue = node.nodeType != ENodeType.Super ? node.inode.cell_position.toString() : '--';
@@ -725,15 +725,15 @@ export class CWorld {
     }
 
     public async initialize() {
-        console.log('world::initialize, num nodes: ' + this.istate.agraph_length);
+        console.log('world::initialize, num nodes: ' + this.istate.nodes.length);
         let gl = this.gl;
         let id = 0;
         for (let inode of this.istate.nodes) {
-            let geostr: string = this.createGeoString(inode.geolocation.latitude, inode.geolocation.longitude);
+            let geostr: string = this.createGeoString(inode.geolocation.coordinates.latitude, inode.geolocation.coordinates.longitude);
             if (inode.cell_position == 1) {
                 if (inode.cell_height > 1) {
                     // new super node
-                    let superNode = new CNode(inode, this.istate.agraph_length+this.superNodes.length, this.superNodes.length, this.camera, ENodeType.Super, null);
+                    let superNode = new CNode(inode, this.istate.nodes.length+this.superNodes.length, this.superNodes.length, this.camera, ENodeType.Super, null);
                     // make super nodes magenta
                     superNode.degreeColor = vec4.fromValues(0.9, 0.0, 0.9, 1.0);
 
@@ -750,6 +750,10 @@ export class CWorld {
                 }
             } else {
                 let superNode = this.superMap.get(geostr);
+                if (!superNode) {
+                    console.log('  could not find supernode for geostr ', geostr);
+                    console.log('  could not find supernode for inode ', inode);
+                }
                 let node = new CNode(inode, id, superNode.subNodes.length, this.camera, ENodeType.Sub, superNode);
                 this.nodes.push(node);
                 superNode.subNodes.push(node);

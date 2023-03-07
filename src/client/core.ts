@@ -58,25 +58,25 @@ export interface IKeyAction {
 }
 
 export interface INode {
-    ip: string
+    addr: string
     betweenness: number
     closeness: number
     cell_position: number
     cell_height: number
     connections: number []
     geolocation: {
-        ip: string
         country: string
         city: string
-        latitude: number
-        longitude: number
+        coordinates: {
+            latitude: number
+            longitude: number    
+        }
         timezone: string
         isp: string
     }
 }
 
 export interface IState {
-    agraph_length: number
     elapsed: number
     nodes: INode []
 }
