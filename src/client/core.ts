@@ -47,6 +47,7 @@ export enum EKeyId {
     ToggleCommand = 'command',
     ToggleFps = 'fps',
     ToggleGradient = 'gradient',
+    ToggleHistogram = 'histogram',
     ColorMode = 'colormode'
 }
 

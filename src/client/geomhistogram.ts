@@ -1,24 +1,29 @@
 
 
-const HEIGHT = 0.4;
-const LEFT = -0.2
-const RIGHT = 0.2;
-const TOP = -0.20
+// centered on screen, 
+// width = 50% of screen width
+// height = 40% of screen height
+const HEIGHT = 0.6;
+const LEFT = -0.5
+const RIGHT = 0.5;
+const TOP = 0.3
 const BOTTOM = TOP - HEIGHT;
+
 const positions = [
     // top left
-    LEFT, TOP, 0, 1,
+    LEFT, TOP, 1, 0,
     // bottom right
-    RIGHT, BOTTOM, 1, 0,
+    RIGHT, BOTTOM, 0, 1,
     // bottom left
     LEFT, BOTTOM, 0, 0,
     // top left
-    LEFT, TOP, 0, 1,
+    LEFT, TOP, 1, 0,
     // top right
     RIGHT, TOP, 1, 1,
     // bottom right
-    RIGHT,BOTTOM, 1, 0,
+    RIGHT,BOTTOM, 0, 1,
 ];
+
 
 export function histogramGeometry(gl: WebGL2RenderingContext) : WebGLBuffer {
     let histogramData : Float32Array = new Float32Array(positions);

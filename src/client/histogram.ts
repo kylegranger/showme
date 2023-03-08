@@ -1,7 +1,7 @@
 import { IHistogram } from "./core";
 
 
-const HISTOGRAM_WIDTH: number = 256;
+const HISTOGRAM_WIDTH: number = 512;
 
 function createHistogramTexture(gl: WebGL2RenderingContext, summary: IHistogram) : WebGLTexture {
 
@@ -15,17 +15,21 @@ function createHistogramTexture(gl: WebGL2RenderingContext, summary: IHistogram)
     let n = 0;
     for (let y = 0; y < height; y++) {
         let h = Math.floor(summary.counts[y]/summary.max_count * HISTOGRAM_WIDTH + 0.5);
-        console.log(`y ${y} h ${h} `)
+        // Fudge, that if count is > 0, show at least 1 notch in graph
+        if (h == 0 && summary.counts[y] > 0) {
+            h = 1;
+        }
+        // console.log(`y ${y} h ${h} `)
         for (let x = 0; x < HISTOGRAM_WIDTH; x++ ) {
             if (x < h) {
-                // use black where the data is valid
+                // use yellow where the data is valid
                 data[n+0] = 255
-                data[n+1] = 0
-                data[n+2] = 0
-            } else {
-                // white for background
-                data[n+0] = 0
                 data[n+1] = 255
+                data[n+2] = 128
+            } else {
+                // black for background
+                data[n+0] = 0
+                data[n+1] = 0
                 data[n+2] = 0
             }
             data[n+3] = 255
@@ -44,7 +48,9 @@ function createHistogramTexture(gl: WebGL2RenderingContext, summary: IHistogram)
         HISTOGRAM_WIDTH, height, border, srcFormat, srcType,
         data);
 
-    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
     return texture;
 }

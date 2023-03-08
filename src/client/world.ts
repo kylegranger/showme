@@ -93,6 +93,7 @@ export class CWorld {
     public displayCommand: boolean;
     public displayFps: boolean;
     public displayGradient: boolean;
+    public displayHistogram: boolean;
     private minBetweenness: number;
     private maxBetweenness: number;
     private minCloseness: number;
@@ -184,6 +185,7 @@ export class CWorld {
         this.displayCommand = true;
         this.displayFps = true;
         this.displayGradient = true;
+        this.displayHistogram = false;
         this.minBetweenness = 100;
         this.maxBetweenness = 0;
         this.minCloseness = 100;
@@ -220,15 +222,18 @@ export class CWorld {
     public updateColorDisplay() {
         switch (this.colorMode) {
             case EColorMode.Between:
-                this.colorModeNode.nodeValue = 'betweenness'
+                this.colorModeNode.nodeValue = 'betweenness';
+                this.currentHistogramTexture = this.histogramBTexture;
                 document.getElementById("gradient").textContent = this.betweennessDescription;
                 break;
             case EColorMode.Close:
-                this.colorModeNode.nodeValue = 'closeness'
+                this.colorModeNode.nodeValue = 'closeness';
+                this.currentHistogramTexture = this.histogramCTexture;
                 document.getElementById("gradient").textContent = this.closenessDescription;
                 break;
             case EColorMode.Degree:
-                this.colorModeNode.nodeValue = 'degree'
+                this.colorModeNode.nodeValue = 'degree';
+                this.currentHistogramTexture = this.histogramDTexture;
                 document.getElementById("gradient").textContent = this.degreeDescription;
                 break;
         }
@@ -892,6 +897,8 @@ export class CWorld {
         this.renderNodes()
         if (this.displayGradient) {
             this.renderGradient();
+        }
+        if (this.displayHistogram) {
             this.renderHistogram();
         }
     }

@@ -102,6 +102,8 @@ export class CMousekeyCtlr {
             this.app.onAction(true, EKeyId.ColorMode);
         } else if (evt.code == 'KeyG') {
             this.app.onAction(true, EKeyId.ToggleGradient);
+        } else if (evt.code == 'KeyH') {
+            this.app.onAction(true, EKeyId.ToggleHistogram);
         } else if (evt.code == 'KeyN') {
             this.app.onAction(true, EKeyId.ToggleConnection);
         } else if (evt.code == 'KeyX') {
