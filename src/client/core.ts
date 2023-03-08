@@ -47,6 +47,7 @@ export enum EKeyId {
     ToggleCommand = 'command',
     ToggleFps = 'fps',
     ToggleGradient = 'gradient',
+    ToggleHistogram = 'histogram',
     ColorMode = 'colormode'
 }
 
@@ -56,6 +57,13 @@ export interface IKeyAction {
     acceleration: number;
     velocity: number
 }
+
+export interface IHistogram {
+    label: string
+    counts: number []
+    max_count: number
+}
+
 
 export interface INode {
     addr: string
@@ -79,4 +87,5 @@ export interface INode {
 export interface IState {
     elapsed: number
     nodes: INode []
+    histograms: IHistogram []
 }

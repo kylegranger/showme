@@ -145,7 +145,10 @@ export class CApp {
             if (id == EKeyId.ToggleGradient && this.world) {
                 this.world.displayGradient = !this.world.displayGradient;
                 document.getElementById("gradient").style.visibility = this.world.displayGradient ? "visible" : "hidden";
-
+            }
+            if (id == EKeyId.ToggleHistogram && this.world) {
+                this.world.displayHistogram = !this.world.displayHistogram;
+                console.log('this.world.displayHistogram now ', this.world.displayHistogram);
             }
             if (id == EKeyId.ColorMode && this.world) {
                 this.world.cycleColorMode();
