@@ -5,6 +5,7 @@ import { CNode } from './node'
 import { vec2, vec3, vec4, mat4 } from 'gl-matrix'
 import { icosaGeometry } from './geomicosa'
 import { gradientGeometry } from './geomgradient'
+import { histogramGeometry } from './geomhistogram'
 import { cubeGeometry } from './geomcube'
 import { lineGeometry } from './geomline'
 import { CPicker } from './picker';
@@ -13,6 +14,7 @@ import { PCamera } from './camera';
 import { initWorldMap } from './worldmap'
 import { glShaders } from './shaders';
 import { createRandomTexture, loadTexture } from './util';
+import { getHistogramTexture } from './histogram'
 
 
 const NODE_TRANSFORM_SIZE: number = 28;
@@ -31,6 +33,10 @@ export class CWorld {
     private noiseTexture: WebGLTexture;
     private worldMapTexture: WebGLTexture;
     private gradientTexture: WebGLTexture;
+    private histogramBTexture: WebGLTexture;
+    private histogramCTexture: WebGLTexture;
+    private histogramDTexture: WebGLTexture;
+    private currentHistogramTexture: WebGLTexture;
     private picker: CPicker;
 
     public topTexture: WebGLTexture;
@@ -45,6 +51,7 @@ export class CWorld {
     private icosaGeometry: WebGLBuffer;
     private cubeGeometry: WebGLBuffer;
     private gradientGeometry: WebGLBuffer;
+    private histogramGeometry: WebGLBuffer;
     private worldMapGeometry: WebGLBuffer;
     private lineGeometry: WebGLBuffer;
 
@@ -61,6 +68,7 @@ export class CWorld {
     private connectionData: Float32Array;
     private worldMapVao: WebGLVertexArrayObject;
     private gradientVao: WebGLVertexArrayObject;
+    private histogramVao: WebGLVertexArrayObject;
     private connectionVao: WebGLVertexArrayObject;
     public icosaVPLoc: WebGLUniformLocation;
     public worldMapVPLoc: WebGLUniformLocation;
@@ -608,6 +616,20 @@ export class CWorld {
         gl.enableVertexAttribArray(1);
         gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
     }
+    private initHistogramGl() {
+        let gl = this.gl;
+        this.gradientTextureLoc = gl.getUniformLocation(glShaders[EShader.Gradient], 'u_gradientTexture');
+        this.histogramGeometry = histogramGeometry(gl)
+        this.histogramVao = gl.createVertexArray();
+        gl.bindVertexArray(this.histogramVao);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.histogramGeometry);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
+        gl.enableVertexAttribArray(1);
+        gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
+    }
+
 
     initConnectionsGl() {
         let gl = this.gl;
@@ -652,6 +674,13 @@ export class CWorld {
             this.worldMapTexture = await loadTexture(gl, "data/world-mono-4k.png");
         }
         this.gradientTexture = await loadTexture(gl, "data/gradient.jpeg");
+        this.histogramBTexture = getHistogramTexture(gl, this.istate.histograms, 'betweenness');
+        console.log('this.histogramBTexture ', this.histogramBTexture);
+        this.histogramCTexture = getHistogramTexture(gl, this.istate.histograms, 'closeness');
+        console.log('this.histogramCTexture ', this.histogramCTexture);
+        this.histogramDTexture = getHistogramTexture(gl, this.istate.histograms, 'degree');
+        console.log('this.histogramDTexture ', this.histogramDTexture);
+        this.currentHistogramTexture = this.histogramDTexture;
 
     }
 
@@ -786,6 +815,7 @@ export class CWorld {
         this.initWorldMapGl();
         this.initConnectionsGl();
         this.initGradientGl();
+        this.initHistogramGl();
     }
 
     private renderWorldMap() {
@@ -810,6 +840,18 @@ export class CWorld {
         gl.bindVertexArray(this.gradientVao);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
+
+    private renderHistogram() {
+        let gl = this.gl
+        gl.depthMask(false);
+        gl.useProgram(glShaders[EShader.Gradient]);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.currentHistogramTexture);
+        gl.uniform1i(this.gradientTextureLoc, 0);
+        gl.bindVertexArray(this.histogramVao);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+
 
     renderConnections() {
         let gl = this.gl
@@ -850,6 +892,7 @@ export class CWorld {
         this.renderNodes()
         if (this.displayGradient) {
             this.renderGradient();
+            this.renderHistogram();
         }
     }
 

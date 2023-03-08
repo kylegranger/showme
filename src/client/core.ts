@@ -57,6 +57,13 @@ export interface IKeyAction {
     velocity: number
 }
 
+export interface IHistogram {
+    label: string
+    counts: number []
+    max_count: number
+}
+
+
 export interface INode {
     addr: string
     betweenness: number
@@ -79,4 +86,5 @@ export interface INode {
 export interface IState {
     elapsed: number
     nodes: INode []
+    histograms: IHistogram []
 }
